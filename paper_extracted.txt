@@ -1,0 +1,1547 @@
+
+
+===== PAGE 1 =====
+IEEE TRANSACTIONS ON WIRELESS COMMUNI CA TIONS, VOL. 20, NO. 3, MARCH 2021 1963
+Intelligent Reﬂecting Surface Assisted
+Anti-Jamming Communications: A Fast
+Reinforcement Learning Approach
+Helin Y ang , Member , IEEE, Zehui Xiong , Member , IEEE,J u nZ h a o , Member , IEEE,
+Dusit Niyato , Fellow, IEEE, Qingqing Wu , Member , IEEE, H. Vincent Poor , Life Fellow, IEEE ,
+and Massimo Tornatore , Senior Member , IEEE
+Abstract— Malicious jamming launched by smart jammers
+can attack legitimate transmissions, which has been regarded
+as one of the critical security challenges in wireless commu-
+nications. With this focus, th is paper considers the use of
+an intelligent reﬂecting surface (IRS) to enhance anti-jamming
+communication performance and mitigate jamming interference
+by adjusting the surface reﬂecting elements at the IRS. Aiming
+to enhance the communication performance against a smart
+jammer, an optimization problem for jointly optimizing power
+Manuscript received April 26, 2020; revised August 27, 2020; accepted
+November 9, 2020. Date of publication November 19, 2020; date of
+current version March 10, 2021. This work was supported in part by the
+National Research Foundation (NRF), S ingapore, under Singapore Energy
+Market Authority (EMA), Energy Resilience, under Grant NRF2017EWT-
+EP003-041 and Grant Singapore NRF2015-NRF-ISF001-2277; in part
+by the Singapore NRF National Satellite of Excellence, Design Science
+and Technology for Secure Critical In frastructure under Grant NSoE
+DeST-SCI2019-0007; in part by the A*STAR-NTU-SUTD Joint Research
+Grant on Artiﬁcial Intelligence for the Future of Manufacturing under
+Grant RGANS1906; in part by the Wallenberg AI, Autonomous Systems
+and Software Program and Nanyang Technological University (W ASP/NTU)
+under Grant M4082187 (4080); in part by the Singapore Ministry of
+Education (MOE) Tier 1 under Grant RG16/20; in part by Alibaba Group
+through the Alibaba Innovative Res earch (AIR) Program, Alibaba-NTU
+Singapore Joint Research Institute (JRI), Nanyang Technological
+University (NTU) Startup Grant, Singapore Ministry of Education Academic
+Research Fund under Grant Tier 1 RG128/18, Grant Tier 1 RG115/19,
+Grant Tier 1 RT07/19, Grant Tier 1 RT01/19, and Grant Tier 2 MOE2019-
+T2-1-176; in part by the NTU-W ASP J oint Project, Singapore National
+Research Foundation under its Strategic Capability Research Centers
+Funding Initiative: Strategic Centre for Research in Privacy-Preserving
+Technologies & Systems, Energy Research Institute @NTU, Singapore NRF
+National Satellite of Excellence, Design Science and Technology for Secure
+Critical Infrastructure under Grant NSoE DeST-SCI2019-0012; and in part
+by the AI Singapore 100 Experiment s (100E) programme, NTU Project for
+Large V ertical Take-Off & Landing Research Platform. This article is to
+be presented at the 2020 IEEE Global Communications Conference, Taipei,
+Taiwan. The associate editor coordinating the review of this article and
+approving it for publication was X. Chen. (Corresponding author: Jun Zhao.)
+Helin Y ang, Zehui Xiong, Jun Zhao, and Dusit Niyato are with the School
+of Computer Science and Engineeri ng, Nanyang Technological University,
+Singapore 639798 (e-mail: hyang013@e.ntu. edu.sg; zxiong002@e.ntu.edu.sg;
+junzhao@ntu.edu.sg; dniyato@ntu.edu.sg).
+Qingqing Wu is with the State Key La boratory of Internet of Things for
+Smart City, University of Macau, Zhuhai, Macau, and also with the National
+Mobile Communications Research Laborat ory, Southeast University, Nanjing
+210096, China (e-mail: qingqingwu@um.edu.mo).
+H. Vincent Poor is with the Department of Electrical Engineering, Princeton
+University, Princeton, NJ 08544 USA (e-mail: poor@princeton.edu).
+Massimo Tornatore is with the Department of Electronics, Information
+and Bioengineering, Politecnico d i Milano, 20133 Milan, Italy (e-mail:
+massimo.tornatore@polimi.it).
+Color versions of one or more ﬁgures in this article are available at
+https://doi.org/10.1109/TWC.2020.3037767.
+Digital Object Identiﬁer 10.1109/TWC.2020.3037767
+allocation at the base station (BS) and reﬂecting beamforming at
+the IRS is formulated while considering quality of service (QoS)
+requirements of legitimate users. As the jamming model and
+jamming behavior are dynamic and unknown, a fuzzy win or
+learn fast-policy hill-climbing (WoLF–CPHC) learning approach
+is proposed to jointly optimize the anti-jamming power allocation
+and reﬂecting beamforming strategy, where WoLF–CPHC is
+capable of quickly achieving the optimal policy without the
+knowledge of the jamming model, and fuzzy state aggrega-
+tion can represent the uncertain environment states as aggre-
+gate states. Simulation results d emonstrate that the proposed
+anti-jamming learning-based approach can efﬁciently improve
+both the IRS-assisted system ra te and transmission protection
+level compared with existing solutions.
+Index Terms — Anti-jamming, intelligent reﬂecting surface,
+power allocation, beamforming, reinforcement learning.
+I. I NTRODUCTION
+D
+UE to the inherent broadcast and open nature of wireless
+channels [1], [2], wireless transmissions are vulnerable to
+jamming attacks. In particular, malicious jammers can inten-
+tionally send jamming signals over the legitimate channels to
+degrade communication perform ance [1]–[3], which has been
+considered as one serious threat in wireless communications.
+Jamming-related investigations not only provide solutions into
+wireless security guarantees against jamming, but also offer
+insights on the vulnerabilities of existing systems. In this
+regard, lots of technologies have been recently presented to
+defend wireless security agai nst jamming attacks, including
+frequency hopping, power control, relay assistance, beamform-
+ing, and so on.
+Frequency-hopping (FH) is a powerful and widely-adopted
+techniques where a wireless user is allowed to quickly switch
+its current operating frequency to other frequency spectrum,
+thereby avoiding potential jamming attacks [4]–[6]. In [4],
+a mode-FH approach was presented to jointly utilize mode
+hopping and conventional FH to decrease bit error rate in the
+presence of jammers. A stochastic game was developed to
+study the interaction process between jammer and legitimate
+user [5], where the jammer and the transmitter can act as
+two contending players to ach ieve the optimal attack and
+defense policies, respectively. In [6], Hanawal et al. proposed
+a joint FH and rate-adapta tion scheme to avoid jamming
+attacks in the presence of a jammer, where the transmitter has
+the ability to escape the jammer by switching its operating
+1536-1276 © 2020 I EEE. Personal u se is perm itted, but republication/redistri bution requires IEEE permission.
+See https://www.ieee.org/publications/rights/index.html for more information.
+Authorized licensed use limited to: NATIONAL INSTITUTE OF TECHNOLOGY WARANGAL. Downloaded on January 03,2026 at 11:05:52 UTC from IEEE Xplore.  Restrictions apply. 
+
+===== PAGE 2 =====
+1964 IEEE TRANSACTIONS ON WIRELESS COMM UNICA TIONS, VOL. 20, NO. 3, MARCH 2021
+channel, adjusting its rate, or both. However, FH may
+become ineffective if smart jammers attack multiple channels
+simultaneously and it also requires extra spectrum resources
+to evade jammers. Besides FH, power control is another
+commonly used technique [3], [7]–[12]. As an example,
+references [7] and [8] investigated a jammed wireless system
+where the system operator tries to control the transmit power to
+maximize system rate while guaranteeing quality-of-service
+(QoS) requirements of legitimate receivers. The authors
+in [3], [9]–[11] developed the novel power control strategies
+for the anti-jamming problem. Speciﬁcally, they leveraged
+game theory to optimize the power control policy of the
+transmitter against jammers, and simulations were provided to
+verify the effectiveness of the proposed anti-jamming power
+control approaches. In addition, a jamming-resistant receiver
+was designed to improve the robustness of communication
+system against jamming in [12], and the optimal power control
+scheme was also developed to improve the achievable rate.
+Recently, cooperative communication using trusted relays
+has been proposed as one promising anti-jamming tech-
+nique for improving the physical layer security [13]–[17].
+To reduce the adverse effects of jamming signals, a joint
+relay selection and beamforming problem was formulated
+in relay-aided systems [13], which was solved by applying
+semi-determined relaxation (SDR) technique. In [14] and [15],
+the joint cooperative beamforming and jamming designs
+considering worst-case robust schemes were proposed to
+maximize the achievable rate under the imperfect channel
+state information (CSI) of a jammer. In [16] and [17],
+the advanced anti-jamming schemes were proposed to cancel
+strong jamming signal, with the goal to maximize the signal-
+to-interference-plus-noise-ratio (SINR) of legitimate users.
+To deal with uncertain and/or unknown jamming attack
+models, such as jamming policies and jamming power levels,
+reinforcement learning (RL) algorithms have been applied
+in some existing studies to optimize the jamming resistance
+policy in dynamic wireless communication systems [18]–[25].
+In [18], a policy hill climbing (PHC)-based Q-Learning
+approach was developed to improve the vehicular commu-
+nication performance against jamming without knowing the
+jamming model. Additionally, a fast PHC-based power control
+algorithm was also presented to assist base station (BS) to
+select anti-jamming transmit power strategy over multiple
+antennas [19]. As traditional Q-learning algorithm has slow
+convergence to the optimal policy, in [20] and [21], the authors
+adopted deep reinforcement learning (DRL) algorithms that
+enable transmitters to quickly obtain an optimal communica-
+tion policy to guarantee secur ity performance against smart
+jamming without the need of knowledge of the jammer’s
+characteristics.
+However, despite the effectiveness of the above
+aforementioned anti-jamming schemes [3]–[21], employing a
+number of active relays incurs an excessive hardware cost and
+system complexity. Moreover, anti-jamming beamforming
+and power control in communication systems are generally
+energy-consuming as more transmit power as well as circuit
+power need to be consumed to improve the communication
+performance. To tackle these s hortcomings, a new paradigm,
+called intelligent reﬂecting surface (IRS) [26]–[39], has
+been recently proposed as a promising technique to
+enhance spectrum efﬁciency an d secrecy performance in the
+ﬁfth-generation (5G) and beyond communication systems.
+In particular, IRS is a uniform planar array comprising
+of a large number of low-cost passive reﬂecting elements,
+where each of the elements adaptively adjusts its reﬂection
+amplitude and/or phase to control the strength and direction
+of the reﬂected electromagnetic wave, thus enhancing and/or
+weakening the received signals at different users [26]–[36].
+As a result, IRS has been empl oyed in wireless commutation
+systems for security performance optimization [37]–[43].
+In [37]–[43], the authors investigated the physical layer
+security enhancement of IRS-assisted communications
+systems, where both the BS’s beamforming and the IRS’s
+phase shifts were jointly optimized to improve secrecy rate in
+the presence of an eavesdropper. Additionally, two algorithms,
+called alternative optimization (AO) algorithm and SDP relax-
+ation algorithm were applied to address the joint optimization
+problem in [37]–[40], and simulation results demonstrated
+the effectiveness of the presented IRS-assisted system
+compared with traditional systems. Furthermore, Y ang et al.
+in [42] applied DRL to learn the secure beamforming policy in
+multi-user IRS-aided secure systems, in order to maximize the
+system secrecy rate in the presence of multiple eavesdroppers.
+To the best of our knowledge, IRS has not been explored yet
+in the existing works [4]–[43] to enhance the anti-jamming
+strategy against smart jamming, where the smart jammer
+attempts to deteriorate the quality of intended transmissions
+by transmitting jamming signal over the legitimate channels.
+In this paper, we propose an IRS-assisted anti-jamming
+solution for securing wireless communications. In particular,
+we aim to maximize the system rate of multiple legitimate
+users in the presence of a smart multi-antenna jammer,
+while guaranteeing the QoS requirements of users against
+smart jamming. As the communication system environment
+is complex and the jammer is smart, a fuzzy RL based anti-
+jamming approach is proposed to effectively jointly optimize
+the anti-jamming power allocation and reﬂecting beamforming
+in uncertain environments. The main contributions are summa-
+rized as follows.
+• We, for the ﬁrst time, propose a novel anti-jamming
+model based on the IRS-assisted system that jointly
+optimizes the transmit power allocation at the BS and
+the reﬂecting beamforming at the IRS to improve secrecy
+rate against smart jamming.
+• Aiming to enhance the anti-jamming performance,
+an optimization problem for jointly optimizing power
+allocation and reﬂecting beamforming is formulated given
+QoS requirements of legitimate users. Since it is difﬁ-
+cult to address the non-convex optimization problem in
+dynamic environments, the problem is modelled as an
+RL process.
+• As the jamming model and jamming behavior are
+dynamic and unknown, a fuzzy win or learn fast-policy
+hill-climbing (WoLF–CPHC) learning approach is pro-
+posed to achieve the optimal anti-jamming policy, where
+WoLF–CPHC is capable of quickly achieving the optimal
+Authorized licensed use limited to: NATIONAL INSTITUTE OF TECHNOLOGY WARANGAL. Downloaded on January 03,2026 at 11:05:52 UTC from IEEE Xplore.  Restrictions apply. 
+
+===== PAGE 3 =====
+Y ANGet al. : IRS ASSISTED ANTI-JAMMING COMMUNICA TIONS: A FAST RL APPROACH 1965
+Fig. 1. Illustration of an IRS-assisted communication system against a
+multi-antenna jammer.
+policy without knowing the jamming model, and fuzzy
+state aggregation (FSA) has the ability to represent the
+uncertain environment states as aggregate states.
+• Simulation results are provided to validate that
+the IRS-assisted system signiﬁcantly improves the
+anti-jamming communication p erformance compared to
+conventional systems without IRS, and also to verify the
+effectiveness of the proposed learning approach in terms
+of improving the system rate and service protection level,
+compared with the existin g approaches. For example,
+the proposed learning approach achieves the system rate
+and service protection level improvements of 21.29% and
+13.36%, respectively, over the existing solution in [39].
+The remainder of this paper is organized as follows.
+Section II provides the system model and problem formula-
+tion. Section III models the optimization problem as an RL
+process, and proposes the fuzzy WoLF–CPHC-based learning
+approach. Simulation results are provided in Section IV , and
+the paper is concluded in Section V .
+Notations: In this paper, vectors and matrices are repre-
+sented by Boldface lowercase and uppercase letters, respec-
+tively. Tr(·), (·)
+∗ and (·)H respectively stand for the trace,
+the conjugate and the conjugate transpose operations. |·| and
+| |·| | denote the absolute value of a scalar and the Euclidean
+norm of a vector or matrix, respectively. CM×N is the space
+of M ×N complex-valued matrices. E[·] denotes the statistical
+expectation operation.
+II. S YSTEM MODEL AND PROBLEM FORMULA TION
+A. System Model
+As shown in Fig. 1, this paper considers an IRS-assisted
+communication system, which consists of one BS with
+N antennas and K single-antenna legitimate user equip-
+ments (UEs) located at the cell-edge. The IRS comprised
+of M reﬂecting elements is deployed to provide additional
+communication links so as to improve the performance for the
+UEs over a given frequency band. The direct communication
+links of cell-edge UEs may suffer high signal attenuation and
+these links are severely blocked by obstacles when these UEs
+are located in dead zones. In addition, as illustrated in Fig. 1,
+a malicious (or unfriendly) multi-antenna jammer is located
+near the UEs who attempts to interfere the transmissions
+by sending faked or replayed jamming signal for the UEs
+via N
+J antennas, in order to degrade the communication
+performance. In this case, deploying the IRS can effectively
+enhance the desired signal power and mitigate the jamming
+interference generated from the jammer by designing the
+reﬂecting beamforming at the IRS.
+Let K = {1, 2,...,K } and M = {1, 2,...,M } represent
+the UE set and the IRS reﬂecting element set, respectively.
+Let G ∈ C
+M×N , gH
+bu,k ∈ C1×N , gH
+ru,k ∈ C1×M ,a n d
+hH
+J,k ∈ C1×NJ denote the channel coefﬁcients between the
+BS and the IRS, between the BS and the k-th UE, between
+the IRS and the k-th UE, and between the jammer and the k-th
+UE, respectively. The quasi-static ﬂat-fading model is assumed
+for all the above channels. Let Φ = diag(Φ1, Φ2,.... , ΦM ) ∈
+CM×M denote the reﬂection coefﬁci ent matrix associated with
+effective phase shifts at the IRS, where Φm = ωmejθm
+comprises both a reﬂection amplitude ωm ∈ [0, 1] and a
+phase shift coefﬁcient θm ∈ [0, 2π] on the combined received
+signal. Since each phase shift is favorable to be designed to
+achieve maximum signal reﬂection, we consider that ω
+m =1 ,
+∀m ∈M in this paper [26]–[29].
+The transmitted signal at the BS can be expressed as
+x =
+K
+k=1
+
+Pkwksk (1)
+where Pk stands for the transmit power allocated for the k-th
+UE, and we have the power constraint: K
+k=1 Pk ≤ Pmax
+with Pmax being the maximum transmit power of the BS, sk
+is the transmitted symbol for the k-th UE, sk ∈ C, E{sk} =0
+and E{|sk|2} =1 which denotes the unit power information
+symbol, and wk ∈ CN ×1 is the beamforming vector for the
+k-th UE with wk2 =1 , respectively.
+This study considers the case that the smart jammer attempts
+to disturb the BS’s transmitted signal by emitting jamming
+signal zk ∈ CNJ ×1 at the k-th UE. In addition, the transmit
+power of the faked jamming signal for the k-th UE is denoted
+as PJ,k = zk2 =T r (zkzH
+k ). In this case, for UE k,
+the received signal consists of the signal coming from its
+associated BS, the reﬂected signal from the IRS and the
+jamming signal from the jammer, which is written by
+yk =
+
+gH
+ru,kΦG + gH
+bu,k
+
+Pkwksk
+
+ 	
+ 
+desired signal
++
+
+i∈K,i=k
+
+gH
+ru,kΦG + gH
+bu,k
+
+Piwisi
+
+ 	
+ 
+inter− userinterference
++
+
+PJ,khH
+J,kzk
+
+ 	
+ 
+jamming signal
++nk (2)
+where nk denotes the additive complex Gaussian noise with
+the zero mean and variance δ2
+k at the k-th UE. In (2),
+in addition to the received desired signal, each UE also suffers
+inter-user interference (IUI) and the jamming interference
+signal in the system. According to (2), the received SINR at
+the k-th UE can be expressed as
+SINR
+k
+=
+Pk
+
+
+gH
+ru,kΦG+gH
+bu,k
+
+wk
+
+2
+
+i∈K,i=k
+Pi
+
+
+
+g
+H
+ru,kΦG+gH
+bu,k
+
+wi
+
+
+2
++PJ,k
+
+h
+H
+J,kzk
+
+
+2
++δ2
+k
+.
+(3)
+Authorized licensed use limited to: NATIONAL INSTITUTE OF TECHNOLOGY WARANGAL. Downloaded on January 03,2026 at 11:05:52 UTC from IEEE Xplore.  Restrictions apply. 
+
+===== PAGE 4 =====
+1966 IEEE TRANSACTIONS ON WIRELESS COMM UNICA TIONS, VOL. 20, NO. 3, MARCH 2021
+B. Problem F ormulation
+In this paper, we aim to jointly optimize the transmit power
+allocation {Pk}k∈K at the BS and the reﬂ ecting beamforming
+matrix Φ at the IRS to maximize the system achievable rate
+of all UEs against smart jamming, subject to the transmit
+power constraint and the mini mum received SINR constraints.
+Accordingly, the optimizatio n problem can be formulated as
+max
+{Pk }k∈K ,Φ
+
+k∈K
+log2 (1 +SINR k)
+s.t. (a):
+K
+k=1
+Pk ≤ Pmax,
+(b): SINR k ≥ SINR min
+k , ∀k ∈K ,
+(c): |Φm| =1 , 0 ≤ θm ≤ 2π, ∀m ∈M (4)
+where SINR min
+k denotes the minimum SINR threshold of the
+k-th UE. Note that problem (4) is a non-convex optimization
+problem, where the objective function is non-concave over the
+reﬂecting beamforming matrix Φ; furthermore, the transmit
+power allocation variables {Pk}k∈K and Φ are intricately
+coupled in the objective function, thus rendering the joint
+optimization problem difﬁcult to be solved optimally. So far,
+many optimization algorithms (e.g., AO and SDR) have been
+proposed to obtain an approximate solution to problem (4),
+by iteratively updating either {P
+k}k∈K or Φ with the other
+ﬁxed at each iteration. Hence, this paper proposes an effective
+solution to address such kind of the optimization problem,
+which will be provided in the next section. In addition, it is
+worth noting that this study mainly pays attention to jointly
+optimize the power allocation and the reﬂecting beamforming,
+so the transmit beamforming vector w
+k is set by maximizing
+output SINR in (3) to make an easy presentation [17].
+III. J OINT POWER ALLOCA TION AND REFLECTING
+BEAMFORMING BASED ON RL
+The problem formulated in (4) is difﬁcult to be solved
+as mentioned at the end of the last section. The traditional
+optimization algorithms (e.g., AO and SDR) are capable of
+addressing one single time slot optimization problem, but
+they may achieve the suboptimal solution and achieve the
+greedy-search like performance as the historical system infor-
+mation and the long term beneﬁt are ignored. In addition,
+the unknown jamming model and channel variation result in
+dynamic open and uncertain characteristics, which increases
+difﬁculty of solving the optimization problem.
+Model-free RL is one of the dynamic programming tools
+which has the ability to address the decision-making problem
+by achieving an optimal policy in dynamic uncertain environ-
+ments [44]. Thus, this paper models the optimization problem
+as an RL, and a fuzzy WoLF-PHC-b ased joint power allocation
+and reﬂecting beamforming approach is proposed to learn the
+optimal anti-jamming strategy.
+A. Optimization Problem Transformation Based on RL
+In RL, the IRS-assisted communication system acts as an
+environment and the central controller at the BS is regarded
+as a learning agent. In addition to the environment and the
+agent, an RL also includes a set of possible system states S,
+a set of available actions A, and a reward function r,w h e r e
+the learning agent continually learns by interacting with the
+environment. The main elements of RL are introduced as
+follows:
+1) States: The system state s
+t ∈S is the discretization of
+the observed information from the environment at the current
+time slot t. The system state st includes the previous jamming
+power, i.e., {Pt− 1
+J,k }k∈K according the channel quality, the
+previous UEs’ SINR values {SINR t− 1
+k }k∈K ,a sw e l la st h e
+current estimated channel coefﬁcients {gt
+k}k∈K , and it is
+deﬁned as
+st =
+
+{Pt− 1
+J,k }k∈K, {gt
+k}k∈K, {SINR t− 1
+k }k∈K
+
+. (5)
+2) Actions: The action at ∈A is one of the valid selections
+that the learning agent chooses at the time slot t,a n di t
+includes the transmit power {Pk}k∈K and the reﬂecting beam-
+forming coefﬁcient (phase shift) {θm}m∈M. Hence, the action
+at is given by
+at =
+
+{Pt
+k}k∈K, {θt
+m}m∈M
+
+. (6)
+3) Transition Probability: P(·) is a transition model which
+represents the probability of taking an action a at a current
+state s and then ending up in the next state s,i . e . ,P(s|s, a).
+4) Policy: Let π(·) denote a policy that it maps the current
+system state to a probability distribution over the available
+actions which can be taken by the agent, i.e., π(a, s): S →A .
+5) Reward Function: The reward function design plays
+an important role in the policy learning in RL, where the
+reward signal correlates with the desired goal of the sys-
+tem performance. In the optimi zation problem considered in
+Section II.B, our objectives are threefold: maximizing the UEs’
+achievable rate while decreasing the power consumption at the
+BS as much as possible and guaranteeing the SINR constraints
+against smart jamming.
+Based on the above analysis, the reward function is set as
+r=
+
+k∈K
+log2 (1+SINR k)
+
+ 	
+ 
+part 1
+−λ1
+
+k∈K
+Pk
+
+ 	
+ 
+part 2
+−λ2
+
+k∈K
+SINR out
+k
+
+ 	
+ 
+part 3
+(7)
+where
+SINR out
+k =
+
+0, if SINR k ≥ SINR min
+k , ∀k ∈K ,
+1, otherwise. (8)
+In (7), the part 1 represents the immediate utility (system
+achievable rate), the part 2 and part 3 are the cost functions
+which are deﬁned as the transmission cost of the power
+consumption at the BS and the violation of minimum SINR
+requirements, respectively, with λ
+1 and λ2 being the corre-
+sponding coefﬁcient. The goal of (8) is to impose the SINR
+protection level, where the cost is zero (i.e., SINR out
+k =0 )
+when the SINR constraint is guaranteed against jamming,
+otherwise, SINR out
+k =1 .
+The objective of the learning agent is to obtain an optimal
+policy that optimizes the long-term cumulative discounted
+reward instead of its immediate reward, which can be
+Authorized licensed use limited to: NATIONAL INSTITUTE OF TECHNOLOGY WARANGAL. Downloaded on January 03,2026 at 11:05:52 UTC from IEEE Xplore.  Restrictions apply. 
+
+===== PAGE 5 =====
+Y ANGet al. : IRS ASSISTED ANTI-JAMMING COMMUNICA TIONS: A FAST RL APPROACH 1967
+expressed as Rt = ∞
+j=0 γjr(t+j+1) ,w h e r eγ ∈ (0, 1] denotes
+the discount factor. Adopting Qπ(st,a t) as the state-action
+value function, which represents the value of executing an
+action a in a state s under a policy π, it can be expressed as
+Q
+π(st,a t)= Eπ
+⎡
+⎣
+∞
+j=0
+γjr(t+j+1) |st = s, at = a
+⎤
+⎦. (9)
+Note that similar to [44], the state-action Q-function
+Qπ(st,a t) satisﬁes the Bellman equation which is expressed
+as
+Qπ(st,a t)= Eπ
+
+rt+1 + γ
+
+st+1 ∈S
+P(st+1|st,a t)
+×
+
+at+1∈A
+π(st+1,a t+1)Qπ(st+1,a t+1)
+
+(10)
+The conventional Q-Learning algorithm is widely utilized
+to search the optimal policy π∗. From (10), the optimal
+Q-function (Bellman optimality equation) associated with the
+optimal policy has the following form
+Q∗(st,a t)
+= rt+1 + γ
+
+st+1 ∈S
+P(st+1|st,a t)m a x
+at+1∈A
+Q∗(st+1,a t+1)
+(11)
+It is worth noting that the Bellman optimality equation
+generally does not have any closed-form solution. Thus,
+the optimal Q-function (11) can be solved recursively to
+achieve the optimal Q∗(st,a t) by using an iterative method.
+Accordingly, the updating on the state-action value function
+Q(st,a t) is expressed as
+Q(st,a t) ← (1−α)Q(st,a t)+α
+
+rt +γmax
+at∈A
+Q∗(st+1,a t)
+
+(12)
+where α ∈ (0, 1] stands for the learning rate for the update of
+Q-function.
+B. Fuzzy W oLF-PHC-Based Joint Power Allocation and
+Reﬂecting Beamforming
+Most of existing RL algorithms are value-based RL, such as
+Q-Leaning, Deep Q-Network (DQN) and double DQN. These
+RL algorithms can estimate the Q-function with low variance
+as well as adequate explora tion of action space, which can
+be ensured by using the greedy scheme. In addition, policy
+gradient based RL algorithm has the ability to tackle the
+continuous action space optimization problems, but it may
+converge to suboptimal solutions [44]. However, it is not easy
+to achieve the optimal anti-jamming policy without knowing
+the jamming model and jamming strategy.
+In order to obtain the optimal anti-jamming policy against
+smart jamming, we propose a fast fuzzy WoLF-PHC-based
+joint power allocation and reﬂecting beamforming for
+IRS-assisted communication systems, as shown in Fig. 2,
+where WoLF-PHC is utilized to enable the learning agent to
+learn and adapt faster in dynamic uncertain environments,
+Fig. 2. Fuzzy WoLF-PHC-based anti-jamming policy for IRS-assisted
+systems.
+and FSA is used to enable Q-Lear ning to represent the system
+states with a ﬁxed number of aggregate states and represent
+continuous state spaces as discrete. In the IRS-assisted system,
+the learning agent observes a system state and receives an
+instantaneous reward by interacting with the environment.
+Then, such information is leveraged to train the learning
+model to choose the anti-jamming policy with the maximum
+Q-function value. After that, according to the selected policy,
+the action is chosen to make decision in terms of power
+allocation and reﬂecting beam forming. The procedures of
+the proposed learning based decision making approach are
+provided in the following analysis.
+The ε−greedy policy is capable of balancing the tradeoff
+between an exploitation and an exploration in an RL, in order
+to avoid converging to local optimal power allocation and
+reﬂecting beamforming strategy. In the ε−greedy policy, the
+agent selects the action with the maximum Q-table value
+with probability 1 − ε, whereas a random action is picked
+with probability ε to avoid achieving stuck at non-optimal
+policies [44], [45]. Hence, the action selection probability of
+the learning agent is expressed as
+Pr(a =˜a)=
+⎧
+⎨
+⎩
+1 − ε, ˜a =a r gm a x
+a∈A
+Q(s, a),
+ε
+|A| − 1, ˜a 	=a r gm a x
+a∈A
+Q(s, a). (13)
+As the WoLF-PHC algorithm is capable of not only keeping
+the Q-function but also quickly learning the decision-making
+policy under uncertain characteristics [46], so this study adopts
+it to derive the optical power allocation and reﬂecting beam-
+forming strategy with the unknown jamming model. In the
+IRS-assisted communication system, the jammer attempts to
+disturb the communication performance of legitimate UEs by
+exploiting the action of the learning agent, the WoLF-PHC
+algorithm can provide uncertainty in the action selection and
+fools the jammer’s attacks in the presence of the unknown
+jamming model.
+In WoLF-PHC, the mixed policy π(s, a) is updated by
+increasing the probability that it selects the most valuable
+action with the highest Q-function value by a learning rate
+ξ ∈ (0, 1], and reducing other probabilities by −ξ/(|A| − 1),
+i.e.,
+π(s, a) ← π(s, a)+
+⎧
+⎪⎨
+⎪⎩
+ξ, if a =a r gm a x
+a
+Q(s, a),
+− ξ
+|A|− 1, otherwise.
+(14)
+Authorized licensed use limited to: NATIONAL INSTITUTE OF TECHNOLOGY WARANGAL. Downloaded on January 03,2026 at 11:05:52 UTC from IEEE Xplore.  Restrictions apply. 
+
+===== PAGE 6 =====
+1968 IEEE TRANSACTIONS ON WIRELESS COMM UNICA TIONS, VOL. 20, NO. 3, MARCH 2021
+In (14), the WoLF-PHC algorithm has two variable learning
+rates, i.e., ξwin and ξloss, with ξloss >ξ win [46]. These two
+learning rates are employed to improve the learning policy
+depending on whether the learning agent wins or loses at
+the current learning step. The expected value is generally
+used to take this determination, in other words, whether
+the expected value of the current policy π(s, a) is larger
+than the expected value o f the average policy
+
+π(s, a).I ft h e
+current expected value is larger (i.e. the agent is “winning”),
+then the smaller learning rate ξwin is chosen; otherwise, ξloss
+is selected. The corresponding updating rule is given by
+ξ=
+
+ξwin, if
+
+a
+π(s, a)Q(s, a)>
+
+a
+
+π(s, a)Q(s, a),
+ξloss, otherwise.
+(15)
+When the selected action a is executed, the average policy
+
+π(s, a) of all actions is updated under the given state s as
+
+π(s, a) ←
+
+π(s, a)+ π(s, a) −
+
+π(s, a)
+C(s) (16)
+where C(s) denotes the number of the state s from the initial
+state to the current state.
+In practical communication systems, it is difﬁcult to know
+the accurate jamming model and behaviors of the smart
+jammer, so the possible estimated state space related to the
+jamming behaviors increases. Moreover, the uncertain jam-
+ming behaviors and mobility of the jammer result in an uncer-
+tain dynamic during the learning process. Hence, this paper
+combines fuzzy state aggregation (FSA) into the WoLF-PHC
+algorithm to represent the system states with a ﬁxed number
+of FSA states and thus reduce the number of system states that
+the WoLF-PHC algorithm must deal with. FSA can transform
+continuous states as discrete [47], hence enabling the use of the
+WoLF-PHC algorithm in continuous state spaces. Thus, FSA is
+combined with the WoLF-PHC algorithm to formulate a fuzzy
+approximation architecture, wh ere the fuzzy state-action value
+function under the state-action pair ( s, a)i sg i v e nb y
+FQ(s, a)=
+L
+l=1
+Ql(s, a)ψl(s, a) (17)
+where L represents the number of fuzzy states, FQl(s, a) is
+the value function of the l-th fuzzy state and ψl(s, a) stands
+for the degree of relationship between the state s and the l-th
+fuzzy state with the given action a.
+The mixed policy π(s, a) controls the probabilities which
+is utilized to choose an action with a given policy. With FSA,
+the policy decision is determined by both the expected reward
+value Q
+l(s, a) and the policy πl(s, a),i . e . ,
+πFSA(s, a)=
+L
+l=1
+πl(s, a)Ql(s, a)ψl(s, a). (18)
+And the elements of {πl(s, a)}L
+l=1 are initialized by
+|A|
+a=1
+L
+l=1
+πl(s, a)ψl(s, a)=1 . (19)
+The policy πl(s, a) is updated as follow
+πl(s, a)
+← πl(s, a)+
+⎧
+⎪⎪
+⎨
+⎪⎪
+⎩
+ξψ
+l(s, a)
+L , if a=argmax
+a
+FQ(s, a)
+− ξψl(s, a)
+L(|A| − 1), otherwise.,
+×∀l (20)
+As WoLF-PHC is combined with FSA, the probability ξ is
+used to update the entire fuzzy summation
+|A|
+a=1
+L
+l=1
+πl(s, a)ψl(s, a)
+←
+|A|
+a=1
+L
+l=1
+πl(s, a)ψl(s, a)
++
+⎧
+⎪⎨
+⎪⎩
+ξ, if a =a r gm a x
+a
+FQ(s, a)
+− ξ
+|A| − 1, otherwise.
+(21)
+It is worth pointing out that with a given action a,t h e
+probability ξneeds to be carefully set in (20) and (21), to avoid
+a disproportionate growth in πl(s, a) [47].
+Accordingly, the update on the fuzzy state-action value
+function is given by
+FQ(s, a) ← (1−α)FQ(s, a)+ α
+
+r+γmax
+a∈A
+FQ ∗(s,a )
+
+.
+(22)
+The fuzzy WoLF-PHC-based joint power allocation and
+reﬂecting beamforming appro ach for the IRS-assisted com-
+munication system against smart jamming is summarized in
+Algorithm 1 . In the system, at each episode training step,
+the learning agent observes its system state st (i.e., the esti-
+mated jamming power, SINR values, and channel coefﬁcients)
+by interacting with the envir onment. At each learning time
+slot t, the joint action at (i.e., power allocation and reﬂecting
+beamforming) is selected by using the probability distribu-
+tion π(st,a t).T h e ε-greedy policy method is employed to
+balance the exploration and the exploitation, for example,
+the action with the maximum Q-function value is chosen with
+probability 1 − ε according to the known knowledge, while
+a random action is chosen with probability ε based on the
+unknown knowledge. After executing the selected action at,
+the environment will feedback a reward r(st,a t) and a new
+system state st+1 to the learning agent. Then, the WoLF-PHC
+algorithm updates both the current policy π(st,a t) and the
+average policy
+
+π(st,a t), and uses them to select the variable
+learning rate ξ to improve the learning rate. According to the
+updated policy π(st,a t), FSA is adopted to calculate the fuzzy
+Q-function FQ(st,a t) and the fuzzy-state policy πFSA(s, a),
+as well as updating FQ(st,a t) in the next time slot until
+it converges to the ﬁnal point. Finally, the learning model
+is trained successfully, and it can be loaded to search the
+joint power allocation {P
+k}k∈K and reﬂecting beamforming
+matrix Φ strategies according to the selected action.
+Authorized licensed use limited to: NATIONAL INSTITUTE OF TECHNOLOGY WARANGAL. Downloaded on January 03,2026 at 11:05:52 UTC from IEEE Xplore.  Restrictions apply. 
+
+===== PAGE 7 =====
+Y ANGet al. : IRS ASSISTED ANTI-JAMMING COMMUNICA TIONS: A FAST RL APPROACH 1969
+Algorithm 1 Fuzzy WoLF-PHC-Based Joint Power Allocation
+and Reﬂecting Beamforming
+1: Input: Fuzzy WoLF-PHC learning structure and
+IRS-assisted system with a jammer.
+2: Initialize: Q(s, a)=0 , π(s, a)=1 / |A|,
+
+π(s, a)= π(s, a),
+ξ, ξloss >ξwin, C(s), γ, α, and set fuzzy rules.
+3: for each episode j = 1, 2, …, N epi do
+4: for each time step t = 0, 1, 2, …, T do
+5: Observe an initial system state st;
+6: Select action at based on ε-greedy policy by (13):
+at =a r gm a x
+at∈A
+Q(st,a t), with probability 1- ε;
+at = random{ai}ai∈A, with probability ε;
+7: Execute the exploration action at, receive a reward
+r(st,a t) and the next state st+1;
+8: Update the current policy π(st,a t) via (14);
+9: Select the variable learning rate ξ via (15);
+10: Update the average policy
+
+π(st,a t) via (16);
+11: Set C(s)= C(s)+1 ;
+12: Compute the fuzzy Q-function FQ(st,a t) via (17);
+13: Update the fuzzy-state policy πFSA(s, a) via (20);
+14: Update FQ(st,a t) by via (22);
+15: end for
+16: end for
+17: Return: Fuzzy WoLF-PHC-based learning model;
+18: Output: Load the learning model to achieve the joint
+power allocation {Pk}k∈K and reﬂecting beamforming matrix
+Φ strategy.
+After adequate training in Algorithm 1 , the trained model
+is loaded for the implementation stage. During the implemen-
+tation stage, the controller uses the trained learning model
+to output its selected action a by going through fuzzy
+WoLF-PHC, with the observed state s from the IRS-aided
+secure communication system. Speciﬁcally, it chooses an
+action a, with the maximum value based on the trained fuzzy
+WoLF-PHC learning model. Afterward, the environment feeds
+back an instantaneous reward and a new system state to the
+agent. Finally, the power allocation {Pk} at the BS and the
+phase shift matrix Φ (reﬂecting beamforming) at the IRS are
+achieved according to the selected action.
+C. Complexity and Convergence Analysis
+There have two main notions of complexity for RL: the
+space complexity and the run-time complexity. Let S and A
+denote the sets of the current state space and action space,
+respectively. Our proposed WoLF–CPHC learning algorithm
+is an extension framework of the Q-learning algorithm.
+For RL, [44] proved that the Q-learning algorithm takes
+O
+
+|S|
+2 ×| A |
+
+sample transitions to compute an ε-greedy
+policy. It also showed that it takes O (|S| × |A|) running time
+to compute the iteration process. Hence, at a decision stage,
+the sample complexity of the action selection and learning
+update of the proposed WoLF–CPHC learning algorithm is
+O
+
+|S|
+2 ×| A |
+
+, and the running time complexity the algorithm
+is O (|S| × |A|).
+Fig. 3. Simulation setup.
+According to the aforementioned analysis of both the
+sample complexity and the run-time complexity, we can
+observe that both the state and action spaces mainly decide
+the complexity of the proposed algorithm. In our pro-
+posed WoLF–CPHC learning algorithm which is based on
+Q-learning, both the state and action spaces are discretized.
+The proposed fuzzy WoLF-PHC-based algorithm is an
+extension of Q-learning for the decision-making, and it essen-
+tially uses a sample average of the fuzzy action-value function,
+i.e. FQ(s, a), to approximate FQ
+∗(s, a). Here, we provide
+a proof that the proposed fuzzy WoLF-PHC-based algorithm
+can converge to the optimal point of ﬁnite Markov decision
+process (MDP).
+Theorem 1: The fuzzy WoLF-PHC-based algorithm given
+by
+FQt+1(st,a t)=( 1 − αt)FQt(st,a t)
++ αt
+
+rt + γmaxFQt(st+1,a t)
+a∈A
+ 
+(23)
+can converge to the optimal FQ ∗(s, a) values of ﬁnite MDP
+if the following conditions are satisﬁed [44]:
+i. The state and actio n spaces are ﬁnite;
+ii. The learning rate αt admits: ∞
+t=1 αt = ∞ and∞
+t=1 α2
+t < ∞ ;
+iii. The instantaneous reward is bounded and the transition
+probability function P(st+1|st,a t) is stationary.
+Proof: the details of the proof can be seen in [44].
+IV . S IMULA TION RESULTS AND ANALYSIS
+This section evaluates the pe rformance of the IRS-assisted
+communication system against smart jamming shown in Fig. 3,
+where a number of single-antenna UEs are randomly located
+in the 100 m × 100 m right-hand side rectangular area (light
+blue area). The locations of the BS and the IRS are (0, 0)
+and (75, 100) in meter (m), respectively. There are obstacles
+which block the direct communication links from the BS to
+the UEs, so the obstacles cause a l arge-scale pathloss for the
+communication links. In addition, a smart jammer is randomly
+located in the 50 m × 100 m rectangle area (grey area), since
+the location behavior of the smart jammer is not easy to be
+caught and it may move randomly near the UEs.
+As for the communication channel coefﬁcients, the path loss
+in dB is expressed as
+PL =( PL
+0 − 10β log10(d/d0)) (24)
+where PL 0 denotes the path loss at the reference distance
+d0, β is the path loss exponent, and d is the distance from
+Authorized licensed use limited to: NATIONAL INSTITUTE OF TECHNOLOGY WARANGAL. Downloaded on January 03,2026 at 11:05:52 UTC from IEEE Xplore.  Restrictions apply. 
+
+===== PAGE 8 =====
+1970 IEEE TRANSACTIONS ON WIRELESS COMM UNICA TIONS, VOL. 20, NO. 3, MARCH 2021
+the transmitter to the receiver, respectively. Here, we use βbu,
+βbr, βru,a n d βju to denote the path loss exponents of the
+channel links between the BS and the UEs, between the BS
+and the IRS, between the IRS and the UEs, and between the
+jammer and the UEs, respectively. According to [26]–[29],
+we set PL
+0 = 30 dB and d0 = 1 m. Since there are extensive
+obstacles as well as scatterers in the channel links from the
+BS to the UEs, we set the path loss exponent β
+bu =3 .75.
+As the IRS is carefully located in favorable location to provide
+a low path loss, then we set βbr = βru =2 .2.T h es m a r t
+jammer is located near the UEs to disturb the communication
+performance of UEs, and its corresponding path loss exponent
+can be set to β
+ju =2 .5.
+We set the background noise at all UEs equal to δ2 =
+−105 dBm. The number of antennas at the BS and the jammer
+are set to N = NJ =8 . The maximum transmit power Pmax
+at the BS varies from 15 dBm to 40 dBm, the SINR target
+value for UEs varies from SINR min = 10 dB to SINR min =
+25 dB, and the number of IRS elements M varies from 20 to
+100 for different simulation settings. In addition, the jamming
+power of the smart jammer ranges from 15 dBm to 40 dBm
+according to its jamming behavior, and the BS cannot know
+the current jamming power levels, but it can estimate the
+previous jamming power level s according to the historical
+channel quality.
+The learning rate is set to α =0 .5 × 10
+− 2, the discount
+factor is set to γ =0 .9 and the ﬁnal exploration rate is 0.1.
+The cost parameters λ1 and λ2 in (7) are set to λ1 =1 and
+λ2 =2 to balance the utility and cost. We set ξloss =0 .04
+and ξwin =0 .01 [46], [47].
+In addition, we compare the proposed fuzzy WoLF-PHC-
+based joint power allocation and reﬂecting beamforming
+approach (denoted as fuzzy Wo LF-PHC learning) with the
+following approaches:
+• The system rate maximization approach which jointly
+optimizes the BS’s transmit power allocation and
+the IRS’s reﬂect beamforming against jamming.
+The approach adopts AO to solve the optimization
+problem (4), and an iterative algorithm is used to
+update power allocation and reﬂect beamforming under
+QoS constraints, which is similar to the near-optimal
+solution [39] (denoted as Baseline 1 [39]).
+• The popular fast Q-Learning approach [19], which is
+adopted to optimize the transmit power allocation and
+reﬂecting beamforming in I RS-assisted communication
+systems (denoted as fast Q-Learning 19]).
+• The optimal transmit power allocation at the BS without
+IRS assistance (denoted as optimal P A without IRS).
+A. Convergence Comparisons of Different RL Approaches
+We ﬁrst compare the convergence performance of all
+approaches when P
+max = 30 dBm, K =4 , M =6 0 ,
+and SINR min = 10 dB. We show in Fig. 4 that the
+reward value with increasing training episodes to investigate
+the convergence behavior of the proposed fuzzy WoLF-
+PHC-based approach and compared approaches. Clearly,
+the proposed learning approach achieves the higher reward
+Fig. 4. Convergence behaviors of the various RL approaches.
+performance than those of the fast Q-learning approach
+and classical Q-learning approach. Especially, the proposed
+approach has faster convergence speed by adopting the
+PHC mechanism to improve the learning efﬁciency and
+convergence speed. The fast Q-learning approach can achieve
+the comparable convergence speed by adopting fast learning
+mechanism, but it achieves poorer performance than that of
+our proposed approach, leading to the poor reward value.
+Even though the classical Q-learning approach has the
+simplest structure, the worst performance fails to optimize
+the network performance with increasing training episodes.
+Our proposed approach applies both the PHC and fuzzy state
+aggregation mechanisms to enhance the convergence speed
+and learning efﬁciency, and the optimized strategy can be
+learned after a number of training episodes.
+From Fig. 4, the reward per episode is improved as training
+continues, demonstrating the effectiveness of the proposed
+training approach. When the training episode approximately
+reaches 1200, the performance gr adually converges despite
+some ﬂuctuations due to mobility -induced channel fading in
+mobile environments and the adopted ε-greedy policy for the
+exploration and the exploitation in the training process. In our
+considered IRS-assisted systems, the environment is complex,
+and also the action and state space are large, the proposed
+learning approach requires about 1200 training episodes to
+appropriately converge.
+B. Performance Comparisons V ersus Maximum Transmit
+Power
+The average system rate and SINR protection level versus
+the maximum transmit power P
+max for various approaches are
+s h o w ni nF i g .5 ,w h e nK =4 , M =6 0,a n d SINR min =
+10 dB, which demonstrates that the achieved system rate and
+SINR protection level improve as Pmax increases. We can
+also observe that both the proposed learning approach and
+the Baseline 1 approach have good system rate value under
+different values of Pmax, and both of them greatly outperform
+other approaches. However, the SINR protection level of the
+Baseline 1 approach is obviously lower than that of the
+proposed learning approach and fast Q-Learning approach,
+because it is a single time slot optimization solution that
+Authorized licensed use limited to: NATIONAL INSTITUTE OF TECHNOLOGY WARANGAL. Downloaded on January 03,2026 at 11:05:52 UTC from IEEE Xplore.  Restrictions apply. 
+
+===== PAGE 9 =====
+Y ANGet al. : IRS ASSISTED ANTI-JAMMING COMMUNICA TIONS: A FAST RL APPROACH 1971
+Fig. 5. Performance comparisons versus the maximum transmit power Pmax.
+ignores the long-term beneﬁt, and thus QoS requirement
+cannot be effectively guaranteed.
+Additionally, the performance improvement achieved
+by using IRS versus no IRS increases with Pmax,w h i c h
+indicates the advantage of deploying IRS against smart
+jamming. In addition, the performance of both the system
+rate and the SINR protection level of the proposed fuzzy
+WoLF-PHC-based learning approach is higher than that
+of the fast Q-Learning approach, which is due to the
+fact that WoLF-PHC and FSA are adopted to effectively
+search the optimal joint power allocation and reﬂecting
+beamforming strategy against smart jamming in dynamic
+uncertain environments. From Fig. 5(b), it is interesting to
+observe that the optimal P A approach without IRS has the
+comparable SINR protection l evel with the fast Q-Learning
+approach based IRS-assisted system, but the optimal approach
+is impractical due to the assumption of the prefect CSI and
+known jamming model in the system.
+C. Performance Comparisons V ersus Number of Reﬂecting
+Elements
+Fig. 6 compares the performance of the four approaches
+for different reﬂecting elements number M when
+Fig. 6. Performance comparisons versus the number of IRS elements.
+Pmax = 30 dBm, K =4 and SINR min = 10 dB. It can be
+seen that, except the optimal P A approach without IRS, the
+performance of all IRS-based approaches increases with M ,
+and greatly outperforms the optimal P A approach without IRS.
+The reason is that the IRS has the ability to support higher
+degrees of freedom for performance optimization, resulting in
+the great performance gains obtained by employing the IRS
+against smart jamming over the traditional system without
+IRS. Speciﬁcally, when M =2 0, the system achievable rate
+gain of the proposed learning approach over the optimal P A
+approach without IRS is only about 2.36 bits/s/Hz, while
+this value is improved to 12.21 bits/s/Hz when M = 100 .
+In addition, by deploying the IRS, the SINR protection
+level is signiﬁcantly improved compared with the optimal
+P A approach without IRS assistance. Such performance
+improvement results from the fact that higher power can be
+achieved at the IRS by increasing M , and a higher reﬂecting
+beamforming gain is achieved t o design the IRS phase shifts
+to improve the received desired signal as well as mitigate the
+jamming interference from the smart jammer by increasing M .
+In addition, from Fig. 6(a), we can also observe that the
+achievable rate of the proposed learning approach outperforms
+both the fast Q-Learning and Baseline 1 approaches,
+Authorized licensed use limited to: NATIONAL INSTITUTE OF TECHNOLOGY WARANGAL. Downloaded on January 03,2026 at 11:05:52 UTC from IEEE Xplore.  Restrictions apply. 
+
+===== PAGE 10 =====
+1972 IEEE TRANSACTIONS ON WIRELESS COMM UNICA TIONS, VOL. 20, NO. 3, MARCH 2021
+Fig. 7. Performance comparisons versus UE SINR target.
+and especially, the performan ce gap signiﬁcantly increases
+with M . At the same time, Fig. 6(b) shows that, as the
+reﬂecting elements increases, the proposed learning approach
+is the ﬁrst one can achieve 100% SINR protection level com-
+pared with other approaches. This is because deploying more
+reﬂecting elements, the proposed fuzzy WoLF-PHC-learning
+based joint power allocation and reﬂecting beamforming
+approach becomes more ﬂexible for optimal phase shift
+(reﬂecting beamforming) design and hence achieves the higher
+performance gain. These resu lts also show that employing
+IRS into wireless communications improves the anti-jamming
+communication performance against smart jamming.
+D. Impact of SINR T arget
+In Fig. 7, we investigate the effect of the UE SINR
+target ( SINR
+min) on the system performance for different
+approaches when Pmax = 30 dBm, K =4 ,a n d M =6 0 .
+It can be seen from Fig. 7 that, for the low SINR target
+regime, both the system rate and SINR protection level decline
+slightly for increasing SINR tar get value, but the performance
+drops signiﬁcantly when SINR min is larger than a certain
+threshold. The reason is that that all approaches can still oper-
+ate an optimized power allocation and reﬂecting beamforming
+design to maintain a favorable rate and guarantee the SINR
+requirement as the SINR target value is small, but the IUI
+and jamming interference become the performance bottleneck
+when the UE SINR target is high; especially, the jamming
+interference from the smart jammer is out of control which
+mainly limits the performance maintenance when the SINR
+constraint is stringent.
+It is worth noting that the three approaches based on the
+IRS-assisted system achieve quite higher system rate and
+SINR protection level performan ce than that of the optimal P A
+approach without IRS, and the SINR protection performance
+gap between them increases signi ﬁcantly for increasing SINR
+target value. This further dem onstrates that the deployment
+of IRS with reﬂecting beamform ing design can effectively
+enhance the desired signal power and mitigate the jamming
+interference generated from the smart jammer. From Fig. 7(b),
+among the three approaches in the IRS-assisted system, our
+proposed fuzzy WoLF-PHC-based leaning approach and the
+fast Q-Learning approach achie ve a signiﬁcant improvement
+of the SINR protection level against smart jamming compared
+with the Baseline 1 approach. The reason is that the two learn-
+ing approaches have the particular design of the SINR-aware
+reward function shown in (7) for SINR protection against
+smart jamming. Furthermore, our proposed learning approach
+achieves the best performance, which indicates that the joint
+power allocation and reﬂect beam forming design is crucial for
+the anti-jamming communicatio n performance against smart
+jamming, which needs the use of both the practical reﬂecting
+beamforming and more sophisticated optimization.
+V. C
+ONCLUSION
+This paper has proposed to improve the anti-jamming per-
+formance of wireless communication systems by employing
+an IRS. With the assistance of IRS, the signal received at
+legitimate UEs is enhanced while the jamming signal gener-
+ated from the smart jammer can be mitigated. Speciﬁcally,
+we have formulated an optimization problem by joint opti-
+mizing both the transmit power allocation at the BS and
+the reﬂecting beamforming at the IRS. As the non-convex
+optimization problem is not easy to solve and the jamming
+model is unknown, a fuzzy WoLF-PHC learning approach has
+been proposed to achieve the optimal anti-jamming strategy,
+where WoLF-PHC and FSA are capable of quickly achieving
+the optimal policy without knowing the jamming model in
+uncertain environments. Simulation results have conﬁrmed
+that that the IRS-assisted system signiﬁcantly improves the
+anti-jamming performance, and als o veriﬁed the effectiveness
+of our proposed learning approach in terms of improving
+system rate as well as service protection level, compared to
+other existing approaches.
+R
+EFERENCES
+[1] A. Mukherjee, S. A. A. Fakoorian, J. Huang, and A. L. Swindlehurst,
+“Principles of physical layer security in multiuser wireless networks:
+As u r v e y , ”IEEE Commun. Surveys Tuts. , vol. 16, no. 3, pp. 1550–1573,
+3rd Quart., 2014.
+[2] Y .-S. Shiu, S. Chang, H.-C. Wu, S. Huang, and H.-H. Chen, “Physical
+layer security in wireless networks: A tutorial,” IEEE Wireless Commun.,
+vol. 18, no. 2, pp. 66–74, Apr. 2011.
+Authorized licensed use limited to: NATIONAL INSTITUTE OF TECHNOLOGY WARANGAL. Downloaded on January 03,2026 at 11:05:52 UTC from IEEE Xplore.  Restrictions apply. 
+
+===== PAGE 11 =====
+Y ANGet al. : IRS ASSISTED ANTI-JAMMING COMMUNICA TIONS: A FAST RL APPROACH 1973
+[3] L. Xiao, J. Liu, Q. Li, N. B. Mandayam, and H. V . Poor, “User-
+centric view of jamming games in cognitive radio networks,” IEEE
+Trans. Inf. Forensics Security , vol. 10, no. 12, pp. 2578–2590,
+Dec. 2015.
+[4] L. Liang, W. Cheng, W. Zhang, and H. Zhang, “Mode hopping for anti-
+jamming in radio vortex wireless communications,” IEEE Trans. V eh.
+Technol., vol. 67, no. 8, pp. 7018–7032, Aug. 2018.
+[5] Y . Gao, Y . Xiao, M. Wu, M. Xiao, and J. Shao, “Game theory-based
+anti-jamming strategies for fre quency hopping wireless communica-
+tions,” IEEE Trans. Wireless Commun. , vol. 17, no. 8, pp. 5314–5326,
+Aug. 2018.
+[6] M. K. Hanawal, M. J. Abdel-Rahman, and M. Krunz, “Joint adaptation
+of frequency hopping and transmission rate for anti-jamming wireless
+systems,” IEEE Trans. Mobile Comput. , vol. 15, no. 9, pp. 2247–2259,
+Sep. 2016.
+[7] S. D’Oro, E. Ekici, and S. Palazzo, “Optimal power allocation and
+scheduling under jamming attacks,” IEEE/ACM Trans. Netw. , vol. 25,
+no. 3, pp. 1310–1323, Jun. 2017.
+[8] Z. Dou, G. Si, Y . Lin, and M. Wang, “An adaptive resource alloca-
+tion model with anti-jamming in IoT network,” IEEE Access ,v o l .7 ,
+pp. 93250–93258, May 2019.
+[9] L. Xiao, T. Chen, J. Liu, and H. Dai, “Anti-jamming transmission
+Stackelberg game with observation errors,” IEEE Commun. Lett., vol. 19,
+no. 6, pp. 949–952, Jun. 2015.
+[10] L. Jia, F. Y ao, Y . Sun, Y . Xu, S. Feng, and A. Anpalagan, “A hierarchical
+learning solution for anti-jamming Stackelberg game with discrete power
+strategies,” IEEE Wireless Commun. Lett. , vol. 6, no. 6, pp. 818–821,
+Dec. 2017.
+[11] A. Garnaev, A. Petropulu, W. Tra ppe, and H. V . Poor, “A power control
+game with uncertainty on the type of the jammer,” in Proc. IEEE Global
+Conf. Signal Inf. Process. (GlobalSIP) , Ottawa, ON, Canada, Nov. 2019,
+pp. 1–5.
+[12] T. T. Do, E. Bjornson, E. G. Larsson, and S. M. Razavizadeh, “Jamming-
+resistant receivers for the massive MIMO uplink,” IEEE Trans. Inf.
+Forensics Security, vol. 13, no. 1, pp. 210–223, 1st Quart., 2018.
+[13] P . Gu, C. Hua, W. Xu, R. Khatoun, Y . Wu, and A. Serhrouchni, “Con-
+trol channel anti-jamming in vehicu lar networks via cooperative relay
+beamforming,” IEEE Internet Things J. , vol. 7, no. 6, pp. 5064–5077,
+Jun. 2020.
+[14] C. Wang and H.-M. Wang, “Robust joint beamforming and jamming
+for secure AF networks: Low-complexity design,” IEEE Trans. V eh.
+Technol., vol. 64, no. 5, pp. 2192–2198, May 2015.
+[15] M. A. Maleki Sadr, M. Ahmadian A ttari, and R. Amiri, “Robust relay
+beamforming against jamming attack,” IEEE Commun. Lett. , vol. 22,
+no. 2, pp. 312–315, Feb. 2018.
+[16] Z. Feng et al., “Power control in relay-assisted anti-jamming systems: A
+Bayesian three-layer stackelberg game approach,” IEEE Access ,v o l .7 ,
+pp. 14623–14636, 2019.
+[17] Q. Liu, M. Li, X. Kong, and N. Zhao, “Disrupting MIMO commu-
+nications with optimal jamming signal design,” IEEE Trans. Wireless
+Commun., vol. 14, no. 10, pp. 5313–5325, Oct. 2015.
+[18] L. Xiao, X. Lu, D. Xu, Y . Tang, L. Wang, and W. Zhuang, “UA V relay
+in V ANETs against smart jamming with reinforcement learning,” IEEE
+Trans. Veh. Technol., vol. 67, no. 5, pp. 4087–4097, May 2018.
+[19] Z. Xiao, B. Gao, S. Liu, and L. Xiao, “Learning based power control
+for mmWave massive MIMO against jamming,” in Proc. IEEE Global
+Commun. Conf. (GLOBECOM) , Abu Dhabi, United Arab Emirates,
+Dec. 2018, pp. 1–6.
+[20] N. V an Huynh, D. N. Nguyen, D. T. Hoang, and E. Dutkiewicz,
+“‘Jam me if you can:’ Defeating jammer with deep dueling neural
+network architecture and ambient b ackscattering augmented communi-
+cations,” IEEE J. Sel. Areas Commun. , vol. 37, no. 11, pp. 2603–2620,
+Nov. 2019.
+[21] S. Liu et al. , “Pattern-aware intelligent anti-jamming communication:
+A sequential deep reinforcement learning approach,” IEEE Access ,
+vol. 7, pp. 169204–169216, 2019.
+[22] Q. Wu and R. Zhang, “Beamforming optimization for wireless network
+aided by intelligent reﬂecting surface with discrete phase shifts,” IEEE
+Trans. Commun., vol. 68, no. 3, pp. 1838–1851, Mar. 2020.
+[23] K. B. Letaief, W. Chen, Y . Shi, J. Zhang, and Y .-J.-A. Zhang,
+“The roadmap to 6G: AI empowered wireless networks,” IEEE Commun.
+Mag., vol. 57, no. 8, pp. 84–90, Aug. 2019.
+[24] Y . Shi, K. Y ang, T. Jiang, J. Zhang, and K. B. Letaief, “Communication-
+efﬁcient edge AI: Algorithms and systems,” IEEE Commun. Surveys
+Tuts., early access, Jul. 7, 2020, doi: 10.1109/COMST.2020.3007787.
+[25] K. Y ang, Y . Shi, Y . Zhou, Z. Y ang, L. Fu, and W. Chen, “Federated
+machine learning for intelligent IoT via reconﬁgurable intelligent sur-
+face,” IEEE Netw., vol. 34, no. 5, pp. 16–22, Sep. 2020.
+[26] C. Huang, A. Zappone, G. C. A lexandropoulos, M. Debbah, and
+C. Y uen, “Reconﬁgurable intelligent surfaces for energy efﬁciency in
+wireless communication,” IEEE Trans. Wireless Commun., vol. 18, no. 8,
+pp. 4157–4170, Aug. 2019.
+[27] Q. Wu and R. Zhang, “Intelligent reﬂecting surface enhanced wireless
+network via joint active and passive beamforming,” IEEE Trans. Wireless
+Commun., vol. 18, no. 11, pp. 5394–5409, Nov. 2019.
+[28] Q. Wu and R. Zhang, “Towards smar t and reconﬁgurable environment:
+Intelligent reﬂecting surface aided wireless network,” IEEE Commun.
+Mag., vol. 58, no. 1, pp. 106–112, Jan. 2020.
+[29] J. Zhao, “A survey of intelligent reﬂecting surfaces (IRSs): Towards 6G
+wireless communication networks,” 2019, arXiv:1907.04789. [Online].
+Available: http://arxiv.org/abs/1907.04789
+[30] M. Di Renzo et al., “Smart radio environments empowered by reconﬁg-
+urable intelligent surfaces: How it works, state of research, and the road
+ahead,” IEEE J. Sel. Areas Commun. , vol. 38, no. 11, pp. 2450–2525,
+Nov. 2020.
+[31] S. Abeywickrama, R. Zhang, Q. Wu, and C. Y uen, “Intelligent reﬂecting
+surface: Practical phase shift model and beamforming optimization,”
+IEEE Trans. Commun. , vol. 68, no. 9, pp. 5849–5863, Sep. 2020.
+[32] C. Pan et al. , “Intelligent reﬂecting surface aided MIMO broadcasting
+for simultaneous wireless information and power transfer,” IEEE J. Sel.
+Areas Commun. , vol. 38, no. 8, pp. 1719–1734, Aug. 2020.
+[33] C. Pan et al. , “Multicell MIMO communications relying on intelligent
+reﬂecting surfaces,” IEEE Trans. Wireless Commun. , vol. 19, no. 8,
+pp. 5218–5233, Aug. 2020.
+[34] B. Di, H. Zhang, L. Song, Y . Li, Z. Han, and H. V . Poor, “Hybrid
+beamforming for reconﬁgurable intelligent surface based multi-user
+communications: Achievable rates with limited discrete phase shifts,”
+IEEE J. Sel. Areas Commun. , vol. 38, no. 8, pp. 1809–1822, Aug. 2020.
+[35] H. Zhang, B. Di, L. Song, and Z. Han, “Reconﬁgurable intelligent
+surfaces assisted communications with limited phase shifts: How many
+phase shifts are enough?” IEEE Trans. Veh. Technol. , vol. 69, no. 4,
+pp. 4498–4502, Apr. 2020.
+[36] M. A. ElMossallamy, H. Zhang, L. Song, K. G. Seddik, Z. Han, and
+G. Y . Li, “Reconﬁgurable intelligent surfaces for wireless communica-
+tions: Principles, challenges, and opportunities,” IEEE Trans. Cognit.
+Commun. Netw., vol. 6, no. 3, pp. 990–1002, Sep. 2020.
+[37] Z. Chu, W. Hao, P . Xiao, and J. Shi, “Intelligent reﬂecting surface
+aided multi-antenna secure transmission,”
+IEEE Wireless Commun. Lett.,
+vol. 9, no. 1, pp. 108–112, Jan. 2020.
+[38] L. Dong and H.-M. Wang, “Secure MIMO transmission via intelli-
+gent reﬂecting surface,” IEEE Wireless Commun. Lett. , vol. 9, no. 6,
+pp. 787–790, Jun. 2020.
+[39] M. Cui, G. Zhang, and R. Zhang, “Secure wireless communication via
+intelligent reﬂecting surface,” IEEE Wireless Commun. Lett. ,v o l .8 ,
+no. 5, pp. 1410–1414, Oct. 2019.
+[40] H. Shen, W. Xu, S. Gong, Z. He, and C. Zhao, “Secrecy rate
+maximization for intelligent reﬂecting surface assisted multi-antenna
+communications,” IEEE Commun. Lett. , vol. 23, no. 9, pp. 1488–1492,
+Sep. 2019.
+[41] H. Gacanin and M. Di Renzo, “Wireless 2.0: Towards an intelligent
+radio environment empowered by reconﬁgurable meta-surfaces and
+artiﬁcial intelligence,” 2020, arXiv:2002.11040. [Online]. Available:
+http://arxiv.org/abs/2002.11040
+[42] H. Y ang, Z. Xiong, J. Zhao, D. Niyato, L. Xiao, and Q. Wu, “Deep
+reinforcement learning based intelligent reﬂecting surface for secure
+wireless communications,” IEEE Trans. Wireless Commun., early access,
+Sep. 25, 2020, doi: 10.1109/TWC.2020.3024860.
+[43] S. Hong, C. Pan, H. Ren, K. Wang, and A . Nallanathan, “Artiﬁcial-noise-
+aided secure MIMO wireless communications via intelligent reﬂecting
+surface,” IEEE Trans. Commun. , vol. 14, no. 8, pp. 1–17, Aug. 2015,
+doi: 10.1109/TCOMM.2020.3024621.
+[44] M. Wiering and M. Otterlo, Reinforcement Learning: State-of-the-Art .
+Cham, Switzerland: Springer, 2014.
+[45] H. Y ang, X. Xie, and M. Kadoch, “Intelligent resource management
+based on reinforcement learning for u ltra-reliable and low-latency IoV
+communication networks,” IEEE Trans. Veh. Technol. , vol. 68, no. 5,
+pp. 4157–4169, May 2019.
+[46] M. Bowling and M. V eloso, “Rational and convergent learning in
+stochastic games,” in Proc. Int Joint Conf. Artif. Intell. , Seattle, W A,
+USA, 2001, pp. 1021–1026.
+[47] D. C. Wardell and G. L. Peterson, “Fuzzy state aggregation and policy
+hill climbing for stochastic environments,” Int. J. Comput. Intell. Appl. ,
+vol. 06, no. 03, pp. 413–428, Sep. 2006.
+[48] H. Y ang, “Intelligent reﬂecting surface assisted anti-jamming com-
+munications based on reinforcement learning,” in Proc. IEEE Global
+Commun. Conf. (GLOBECOM) , Taipei, Taiwan, Dec. 2020, pp. 1–6.
+Authorized licensed use limited to: NATIONAL INSTITUTE OF TECHNOLOGY WARANGAL. Downloaded on January 03,2026 at 11:05:52 UTC from IEEE Xplore.  Restrictions apply. 
+
+===== PAGE 12 =====
+1974 IEEE TRANSACTIONS ON WIRELESS COMM UNICA TIONS, VOL. 20, NO. 3, MARCH 2021
+Helin Yang (Member, IEEE) r eceived the B.S. and
+M.S. degrees from the School of Telecommunica-
+tions Information Engineering, Chongqing Univer-
+sity of Posts and Telecommunications, in 2013 and
+2016, respectively, and the Ph.D. degree from the
+School of Electrical and Electronic Engineering,
+Nanyang Technological University, Singapore,
+in 2020. His current research interests include wire-
+less communication, visible light communication,
+the Internet of Things, and resource management.
+Zehui Xiong (Member, IEEE) r eceived the B.Eng.
+degree (Hons.) from the Huazhong University of
+Science and Technology, Wuhan, China, and the
+Ph.D. degree from Nanyang Technological Univer-
+sity, Singapore. He was a Visiting Scholar with
+Princeton University and the University of Waterloo.
+He is currently a Researcher with Alibaba-NTU
+Singapore Joint Research Institute, Nanyang Tech-
+nological University. He has published more than
+60 peer-reviewed research papers in leading journals
+and ﬂagship conferences, and three of them are ESI
+Highly Cited Papers. His research intere sts include network economics, wire-
+less communications, blockchain, an d edge intelligence. He was a recipient
+of the Chinese Government Award for Outstanding Students Abroad in 2019,
+and the NTU SCSE Outstanding PhD Thesis Runner-Up Award in 2020, and
+has won several best paper awards. He is an Editor of Computer Networks
+(COMNET) (Elsevier) and Physical Communication (PHYCOM) (Elsevier),
+and an Associate Editor of IET Communications .
+Jun Zhao (Member, IEEE) r eceived the bachelor’s
+degree from Shanghai Jiao Tong University, China,
+and the Ph.D. degree in electrical and computer engi-
+neering from Carnegie Mellon University (CMU),
+USA (advisors: Virgil Gligor and Osman Y agan;
+collaborator: Adrian Perrig), afﬁliating with CMU’s
+renowned CyLab Security & Privacy Institute. He is
+currently an Assistant Professor with the School
+of Computer Science and Engineering, Nanyang
+Technological University (NTU), Singapore. Before
+joining NTU, ﬁrst a postdoctoral position with
+Xiaokui Xiao and then as a Faculty Member, he held a postdoctoral position
+with Arizona State University as an Arizona Computing Post-Doctoral Best
+Practices Fellow (advisors: Junshan Zhang and Vincent Poor). His research
+interests include communications, networks, security, and AI.
+Dusit Niyato (Fellow, IEEE) r eceived the B.Eng.
+degree from the King Mongkuts Institute of Technol-
+ogy Ladkrabang (KMITL), Thailand, in 1999, and
+the Ph.D. degree in electrical and computer engi-
+neering from the University of Manitoba, Canada,
+in 2008. He is currently a Professor with the School
+of Computer Science and Engineering, Nanyang
+Technological University, Singapore. His research
+interests include the area of energy harvesting for
+wireless communication, the Internet of Things
+(IoT), and sensor networks.
+Qingqing Wu (Member, IEEE) r eceived the B.Eng.
+degree in electronic engineering from the South
+China University of Technology in 2012, and
+the Ph.D. degree in electronic engineering from
+Shanghai Jiao Tong University (SJTU) in 2016. He is
+currently an Assistant Professor with the Department
+of Electrical and Computer Engineering, University
+of Macau, China, and also afﬁliated with the State
+key laboratory of Internet of Things for Smart City.
+He was a Research Fellow with the Department
+of Electrical and Computer Engineering, National
+University of Singapore. He has published over 70 IEEE journals and
+conference papers. His current research interests include intelligent reﬂecting
+surface (IRS), unmanned aerial vehic le (UA V) communications, and MIMO
+transceiver design. He was a recipient of the IEEE WCSP Best Paper Award
+in 2015, the Outstanding Ph.D. Thesis Funding in SJTU in 2016, and
+the Outstanding Ph.D. Thesis Award of China Institute of Communications
+in 2017. He is the Workshop Co-Chair of the IEEE ICC 2019–2021 workshop
+on “Integrating UA Vs into 5G and Beyond,” and the Workshop Co-Chair of the
+IEEE GLOBECOM 2020 workshop on “Reconﬁgurable Intelligent Surfaces
+for Wireless Communication for Beyond 5G.” He serves as the Workshops and
+Symposia Ofﬁcer of Reconﬁgurable Intelligent Surfaces Emerging Technology
+Initiative and Research Blog Ofﬁcer of Aerial Communications Emerging
+Technology Initiative. He was an Exemplary Editor of IEEE C
+OMMUNI -
+CA TIONS LETTERS in 2019 and an Exemplary Reviewer of several IEEE
+journals. He serves as an Associate Editor for IEEE C OMMUNICA TIONS
+LETTERS , IEEE O PEN JOURNAL OF THE COMMUNICA TIONS SOCIETY ,a n d
+IEEE O PEN JOURNAL OF VEHICULAR TECHNOLOGY . He is a Lead Guest
+Editor for IEEE J OURNAL ON SELECTED AREAS IN COMMUNICA TIONS
+Special Issue on “UA V Communications in 5G and Beyond Networks,” and
+a Guest Editor for IEEE O PEN JOURNAL OF VEHICULAR TECHNOLOGY
+Special Issue on “6G Intelligent Communications” and IEEE O PEN JOURNAL
+OF THE COMMUNICA TIONS SOCIETY Special Issue on “Reconﬁgurable
+Intelligent Surface-Based Communications for 6G Wireless Networks.”
+H. Vincent Poor (Life Fellow, IEEE) r eceived the
+Ph.D. degree in EECS from Princeton University
+in 1977.
+From 1977 to 1990, he was on the faculty of the
+University of Illinois at Urbana-Champaign. Since
+1990, he has been on the faculty at Princeton Univer-
+sity, where he is currently the Michael Henry Strater
+University Professor of Electrical Engineering. From
+2006 to 2016, he served as the Dean of Prince-
+ton’s School of Engineering and Applied Science.
+He has also held visiting appointments at several
+other universities, including most recently at Berkeley and Cambridge. His
+research interests include the areas of information theory, machine learning
+and network science, and their appli cations in wireless networks, energy
+systems, and related ﬁelds. Among his publications in these areas is the
+recent book Multiple Access Techniques for 5G Wireless Networks and Beyond
+(Springer, 2019). He is a member of the N ational Academy of Engineering and
+the National Academy of Sciences, and is a Foreign Member of the Chinese
+Academy of Sciences, the Royal Society, a nd other national and international
+academies. Recent recognition of his work includes the 2017 IEEE Alexander
+Graham Bell Medal and the D.Eng. (honoris causa) from the University of
+Waterloo awarded in 2019.
+Massimo Tornatore (Senior Member, IEEE) is
+currently an Associate Professor with the Depart-
+ment of Electronics, Information, and Bioengineer-
+ing, Politecnico di Milano. He also holds an appoint-
+ment as an Adjunct Professor with the University
+of California at Davis, USA, and as a Visiting
+Professor with the University of Waterloo, Canada.
+His research interests include performance evalu-
+ation, optimization and design of communication
+networks (with an emphasis on the application of
+optical networking technologies), cloud computing,
+and machine learning application for ne twork management. In these areas,
+he coauthored more than 350 peer-revi ewed conference papers and journal
+articles (with 18 best paper award s), two books, and one patent. He is a
+member of the Editorial Board of IEEE C
+OMMUNICA TION SURVEYS AND
+TUTORIALS , IEEE COMMUNICA TIONS LETTERS , Photonic Network Commu-
+nications (Springer), and Optical Switching and Networking (Elsevier). He is
+an active member of the technical program committee of various networking
+conferences, such as INFOCOM, OFC, ICC, and GLOBECOM. He acted as
+the Technical Program Chair of ONDM 2016 and DRCN 2017 and DRCn
+2019 conferences. He has participated in several EU research and development
+projects (among others FP7 COMBO, H2020 MEtroHaul, and Cost Action
+RECODIS) as well as in several projects in USA, Canada, and Italy.
+Authorized licensed use limited to: NATIONAL INSTITUTE OF TECHNOLOGY WARANGAL. Downloaded on January 03,2026 at 11:05:52 UTC from IEEE Xplore.  Restrictions apply. 
