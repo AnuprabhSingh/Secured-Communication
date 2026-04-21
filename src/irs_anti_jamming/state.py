@@ -28,13 +28,30 @@ class StateAggregator:
         channel_quality_linear: np.ndarray,
         prev_sinr_linear: np.ndarray,
     ) -> np.ndarray:
-        mean_pj_dbm = float(np.mean(watt_to_dbm(prev_jammer_p_watt)))
-        mean_ch_db = float(np.mean(linear_to_db(np.maximum(channel_quality_linear, 1e-12))))
-        mean_sinr_db = float(np.mean(linear_to_db(np.maximum(prev_sinr_linear, 1e-12))))
+        pj_dbm = watt_to_dbm(prev_jammer_p_watt)
+        ch_db = linear_to_db(np.maximum(channel_quality_linear, 1e-12))
+        sinr_db = linear_to_db(np.maximum(prev_sinr_linear, 1e-12))
 
-        f_pj = np.clip((mean_pj_dbm - 15.0) / 25.0, 0.0, 1.0)
-        f_ch = np.clip((mean_ch_db + 100.0) / 60.0, 0.0, 1.0)
-        f_sinr = np.clip((mean_sinr_db + 10.0) / 40.0, 0.0, 1.0)
+        mean_pj_dbm = float(np.mean(pj_dbm))
+        max_pj_dbm = float(np.max(pj_dbm))
+
+        mean_ch_db = float(np.mean(ch_db))
+        std_ch_db = float(np.std(ch_db))
+
+        mean_sinr_db = float(np.mean(sinr_db))
+        min_sinr_db = float(np.min(sinr_db))
+
+        f_pj_mean = np.clip((mean_pj_dbm - 15.0) / 25.0, 0.0, 1.0)
+        f_pj_max = np.clip((max_pj_dbm - 15.0) / 25.0, 0.0, 1.0)
+        f_pj = 0.6 * f_pj_mean + 0.4 * f_pj_max
+
+        f_ch_mean = np.clip((mean_ch_db + 100.0) / 60.0, 0.0, 1.0)
+        f_ch_spread = np.clip(std_ch_db / 20.0, 0.0, 1.0)
+        f_ch = 0.75 * f_ch_mean + 0.25 * (1.0 - f_ch_spread)
+
+        f_sinr_mean = np.clip((mean_sinr_db + 10.0) / 40.0, 0.0, 1.0)
+        f_sinr_min = np.clip((min_sinr_db + 10.0) / 40.0, 0.0, 1.0)
+        f_sinr = 0.5 * f_sinr_mean + 0.5 * f_sinr_min
         return np.asarray([f_pj, f_ch, f_sinr], dtype=float)
 
     def _discrete_id(self, features: np.ndarray) -> int:

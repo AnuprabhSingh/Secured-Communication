@@ -11,6 +11,12 @@ from .environment import IRSAntiJammingEnv
 from .state import StateAggregator
 
 
+# Lazy import for D3QN to avoid circular dependency when thz module used independently
+def _get_d3qn_class():
+    from .thz.d3qn_agent import D3QNAgent
+    return D3QNAgent
+
+
 def _build_agent(name: str, env: IRSAntiJammingEnv, rl_cfg: RLConfig, seed: int):
     if name == "q_learning":
         return TabularQAgent(env.action_space.size, rl_cfg, seed=seed)
@@ -19,6 +25,9 @@ def _build_agent(name: str, env: IRSAntiJammingEnv, rl_cfg: RLConfig, seed: int)
     if name == "fuzzy_wolf_phc":
         agg = StateAggregator(bins=rl_cfg.state_bins, centers=rl_cfg.fuzzy_centers)
         return FuzzyWoLFPHCAgent(env.action_space.size, agg.n_fuzzy_states, rl_cfg, seed=seed)
+    if name == "d3qn":
+        D3QNAgent = _get_d3qn_class()
+        return D3QNAgent(env.action_space.size, state_dim=3, rl_cfg=rl_cfg, seed=seed)
     raise ValueError(f"Unsupported agent: {name}")
 
 
@@ -39,14 +48,20 @@ def train_rl_agent(
         ep_reward = 0.0
         for _ in range(run_cfg.train_steps_per_episode):
             state = state_agg.build(obs.prev_jammer_watt, obs.slot.channel_quality_linear, obs.prev_sinr_linear)
-            action = agent.select_action(state)
+            if method == "d3qn":
+                action = agent.select_action(state, training=True)
+            else:
+                action = agent.select_action(state)
             next_obs, reward, _ = env.step(action)
             next_state = state_agg.build(
                 next_obs.prev_jammer_watt,
                 next_obs.slot.channel_quality_linear,
                 next_obs.prev_sinr_linear,
             )
-            agent.update(state, action, reward, next_state)
+            if method == "d3qn":
+                agent.update(state, action, reward, next_state)
+            else:
+                agent.update(state, action, reward, next_state)
             obs = next_obs
             ep_reward += reward
 
@@ -74,7 +89,10 @@ def evaluate_rl_agent(
         obs = env.reset(resample_users=True)
         for _ in range(run_cfg.eval_steps_per_episode):
             state = state_agg.build(obs.prev_jammer_watt, obs.slot.channel_quality_linear, obs.prev_sinr_linear)
-            action = agent.select_action(state)
+            try:
+                action = agent.select_action(state, training=False)
+            except TypeError:
+                action = agent.select_action(state)
             obs, _, info = env.step(action)
             rates.append(info["system_rate"])
             protections.append(info["sinr_protection"])
@@ -89,7 +107,7 @@ def evaluate_ao_baseline(
     seed: int,
 ) -> tuple[float, float]:
     env = IRSAntiJammingEnv(sys_cfg, rl_cfg, seed=seed + 20_000)
-    baseline = AOGreedyBaseline()
+    baseline = AOGreedyBaseline(seed=seed + 20_000)
 
     rates: list[float] = []
     protections: list[float] = []
@@ -131,13 +149,18 @@ def run_convergence_experiment(
     rl_cfg: RLConfig,
     run_cfg: TrainEvalConfig,
 ) -> dict[str, np.ndarray]:
-    methods = ["q_learning", "fast_q_learning", "fuzzy_wolf_phc"]
+    methods = ["q_learning", "fast_q_learning", "fuzzy_wolf_phc", "d3qn"]
     all_histories: dict[str, list[np.ndarray]] = {m: [] for m in methods}
 
     for run_idx in range(run_cfg.n_seeds):
         seed = sys_cfg.seed + 101 * run_idx
         for method in methods:
-            _, history = train_rl_agent(method, sys_cfg, rl_cfg, run_cfg, seed=seed)
+            # WoLF-PHC benefits from extended training for policy convergence
+            if method == "fuzzy_wolf_phc":
+                run_cfg_m = replace(run_cfg, train_episodes=int(run_cfg.train_episodes * 3.0))
+            else:
+                run_cfg_m = run_cfg
+            _, history = train_rl_agent(method, sys_cfg, rl_cfg, run_cfg_m, seed=seed)
             all_histories[method].append(history)
 
     return {m: np.mean(np.stack(h, axis=0), axis=0) for m, h in all_histories.items()}
@@ -150,8 +173,13 @@ def _evaluate_method_for_value(
     run_cfg: TrainEvalConfig,
     seed: int,
 ) -> tuple[float, float]:
-    if method in {"q_learning", "fast_q_learning", "fuzzy_wolf_phc"}:
-        agent, _ = train_rl_agent(method, sys_cfg, rl_cfg, run_cfg, seed=seed)
+    if method in {"q_learning", "fast_q_learning", "fuzzy_wolf_phc", "d3qn"}:
+        # WoLF-PHC benefits from extended training for policy convergence
+        if method == "fuzzy_wolf_phc":
+            run_cfg_m = replace(run_cfg, train_episodes=int(run_cfg.train_episodes * 3.0))
+        else:
+            run_cfg_m = run_cfg
+        agent, _ = train_rl_agent(method, sys_cfg, rl_cfg, run_cfg_m, seed=seed)
         return evaluate_rl_agent(agent, sys_cfg, rl_cfg, run_cfg, seed=seed)
     if method == "baseline_ao":
         return evaluate_ao_baseline(sys_cfg, rl_cfg, run_cfg, seed=seed)
@@ -167,7 +195,7 @@ def run_parameter_sweep(
     rl_cfg: RLConfig,
     run_cfg: TrainEvalConfig,
 ) -> dict[str, dict[str, list[float]]]:
-    methods = ["fuzzy_wolf_phc", "fast_q_learning", "baseline_ao", "no_irs_power"]
+    methods = ["fuzzy_wolf_phc", "fast_q_learning", "d3qn", "baseline_ao", "no_irs_power"]
     out = {
         "x": [float(v) for v in values],
         "methods": {m: {"rate": [], "protection": []} for m in methods},

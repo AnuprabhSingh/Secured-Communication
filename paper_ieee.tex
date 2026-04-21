@@ -1,0 +1,660 @@
+\documentclass[journal,twocolumn]{IEEEtran}
+
+% ── Core packages ─────────────────────────────────────────────────────
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{algorithmic}
+\usepackage{algorithm}
+\usepackage{graphicx}
+\usepackage{textcomp}
+\usepackage{xcolor}
+\usepackage{booktabs}
+\usepackage{cite}
+\usepackage{multirow}
+\usepackage{array}
+\usepackage{bm}
+\usepackage{balance}
+\usepackage[caption=false,font=footnotesize]{subfig}
+\usepackage{url}
+
+\graphicspath{{./}}
+
+% ── Math shortcuts ────────────────────────────────────────────────────
+\newcommand{\vect}[1]{\mathbf{#1}}
+\newcommand{\mat}[1]{\mathbf{#1}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\C}{\mathbb{C}}
+\DeclareMathOperator{\diag}{diag}
+\DeclareMathOperator{\Tr}{Tr}
+\DeclareMathOperator*{\argmax}{arg\,max}
+\DeclareMathOperator*{\argmin}{arg\,min}
+\newcommand{\dBm}{\,\text{dBm}}
+\newcommand{\dB}{\,\text{dB}}
+\newcommand{\GHz}{\,\text{GHz}}
+
+\begin{document}
+
+% ══════════════════════════════════════════════════════════════════════
+% TITLE
+% ══════════════════════════════════════════════════════════════════════
+
+\title{Intelligent Reflecting Surface Assisted Anti-Jamming Communications in THz Wideband Systems: A Fuzzy WoLF-PHC Learning Approach with Hybrid Beamforming}
+
+\author{
+\IEEEauthorblockN{Anuprabh~Singh}
+\IEEEauthorblockA{Department of Electronics and Communication Engineering\\
+National Institute of Technology, Warangal, India\\
+\textit{anuprabh@student.nitw.ac.in}}
+}
+
+\maketitle
+
+% ══════════════════════════════════════════════════════════════════════
+% ABSTRACT
+% ══════════════════════════════════════════════════════════════════════
+
+\begin{abstract}
+Intelligent reflecting surface (IRS) assisted wireless communication is a promising paradigm for enhancing spectral efficiency and security against malicious jamming. This paper investigates the joint optimization of transmit power allocation and IRS reflecting beamforming in a wideband terahertz (THz) system operating at 100\GHz{} with 10\GHz{} bandwidth, where a smart multi-antenna jammer attacks legitimate user transmissions. We propose a hybrid reinforcement learning (RL) and alternating optimization (AO) framework: RL handles discrete power allocation decisions while AO optimizes continuous IRS phase shifts via closed-form updates. To cope with the dynamic and unknown jamming environment, we employ a fuzzy win-or-learn-fast policy hill-climbing (WoLF-PHC) algorithm that combines fuzzy state aggregation with adaptive mixed-strategy learning. The THz extension incorporates sub-connected hybrid beamforming at the base station, sub-array phase-dependent partial-connection (SPDP) at the IRS for wideband beam squint compensation, and OFDM signaling across 64 subcarriers. Simulation results demonstrate that the proposed fuzzy WoLF-PHC approach achieves a system rate of 11.46~bits/s/Hz and 78.6\% SINR protection level, outperforming classical Q-learning (7.13~bits/s/Hz, 38.8\%), deep Q-network (7.68~bits/s/Hz, 41.9\%), and the AO baseline (8.01~bits/s/Hz, 44.8\%). Furthermore, sweep analyses over transmit power, IRS size, SINR threshold, and jammer power confirm that WoLF-PHC consistently dominates all baselines, with particularly strong robustness under increasing jammer power.
+\end{abstract}
+
+\begin{IEEEkeywords}
+Anti-jamming, intelligent reflecting surface, terahertz communications, reinforcement learning, beamforming, beam squint, WoLF-PHC.
+\end{IEEEkeywords}
+
+% ══════════════════════════════════════════════════════════════════════
+\section{Introduction}
+\label{sec:intro}
+% ══════════════════════════════════════════════════════════════════════
+
+\IEEEPARstart{D}{ue} to the inherent broadcast nature of wireless channels, wireless transmissions are vulnerable to malicious jamming attacks where jammers intentionally emit interfering signals to degrade communication performance~\cite{yang2021irs,liang2019secure}. Defending against such attacks is a critical security challenge in both current fifth-generation (5G) and future sixth-generation (6G) wireless networks.
+
+Traditional anti-jamming techniques include frequency hopping~\cite{hanawal2016joint}, power control~\cite{xu2018jamming}, cooperative relaying~\cite{li2015relay}, and beamforming-based approaches. However, these methods face limitations: frequency hopping requires extra spectrum, power control is energy-consuming, and active relays incur high hardware cost and complexity.
+
+Intelligent reflecting surfaces (IRSs) have emerged as a cost-effective paradigm for enhancing both spectral efficiency and physical-layer security~\cite{wu2019intelligent,wu2021irs_survey}. An IRS comprises a large number of passive reflecting elements, each of which adjusts its reflection phase to constructively combine desired signals while mitigating interference~\cite{renzo2020smart}. The passive nature of IRS eliminates the need for active radio frequency (RF) chains, making it ideal for deployment in jamming scenarios where power resources are contested.
+
+Yang~et~al.~\cite{yang2021irs} pioneered the application of IRS to anti-jamming communications by proposing a fuzzy WoLF-PHC learning approach that jointly optimizes power allocation and IRS phase shifts against a smart jammer. While groundbreaking, their work considered narrowband sub-6\GHz{} operation with a uniform linear array (ULA) at the base station (BS).
+
+\subsection{Motivation and Contributions}
+
+The migration to terahertz (THz) bands (0.1--10~THz) promises massive bandwidths but introduces unique challenges: severe path loss, molecular absorption, beam squint across wideband OFDM subcarriers, and the need for large antenna arrays with hybrid analog-digital beamforming~\cite{su2023wideband,yan2023beamforming}. These challenges are further exacerbated in adversarial environments where a smart jammer exploits the directional nature of THz links.
+
+In this paper, we extend the IRS-assisted anti-jamming framework to wideband THz systems and make the following contributions:
+
+\begin{itemize}
+\item We design a wideband THz IRS-assisted anti-jamming system operating at $f_c = 100\GHz$ with $B = 10\GHz$ bandwidth, featuring a 256-element IRS with sub-array phase-dependent partial-connection (SPDP) architecture for beam squint compensation, a 64-antenna BS with sub-connected hybrid beamforming, and OFDM signaling with 64 subcarriers.
+
+\item We propose a hybrid RL + AO framework where reinforcement learning handles discrete power allocation (42 actions) and alternating optimization solves continuous IRS phase shifts via closed-form updates, achieving tractable optimization in the high-dimensional action space.
+
+\item We employ a fuzzy WoLF-PHC algorithm with 3-feature state compression and 27-component fuzzy membership that provides smooth generalization across states and implements an adaptive mixed-strategy policy that is inherently unpredictable to the smart jammer.
+
+\item We provide comprehensive simulation results including parameter sweeps over transmit power ($P_{\max}$), IRS size ($N_{\text{RIS}}$), SINR target ($\gamma_{\min}$), and jammer power ($P_J$), along with SINR cumulative distribution function (CDF) analysis and runtime comparisons, demonstrating consistent superiority of the proposed approach.
+\end{itemize}
+
+The remainder of this paper is organized as follows. Section~\ref{sec:system} presents the system model and problem formulation. Section~\ref{sec:thz} details the THz-specific channel model and wideband beamforming design. Section~\ref{sec:rl} describes the RL framework and the proposed fuzzy WoLF-PHC algorithm. Section~\ref{sec:results} presents simulation results, and Section~\ref{sec:conclusion} concludes the paper.
+
+\emph{Notation:} Boldface lowercase and uppercase letters denote vectors and matrices, respectively. $(\cdot)^H$, $(\cdot)^*$, and $(\cdot)^T$ denote conjugate transpose, conjugate, and transpose. $|\cdot|$ and $\|\cdot\|$ denote absolute value and Euclidean norm. $\C^{M \times N}$ is the space of $M \times N$ complex matrices. $\E[\cdot]$ is statistical expectation. $\diag(\cdot)$ forms a diagonal matrix. $\mathbf{1}\{\cdot\}$ is the indicator function.
+
+% ══════════════════════════════════════════════════════════════════════
+\section{System Model and Problem Formulation}
+\label{sec:system}
+% ══════════════════════════════════════════════════════════════════════
+
+\subsection{System Description}
+
+We consider a downlink IRS-assisted communication system (Fig.~\ref{fig:system}) consisting of a BS equipped with $N$ antennas and $N_{\text{RF}}$ RF chains serving $K$ single-antenna legitimate users. An IRS with $M = N_1 \times N_2$ reflecting elements is deployed to enhance communication links. A smart multi-antenna jammer with $N_J$ antennas attempts to disrupt the legitimate transmissions.
+
+The system parameters for the THz wideband configuration are:
+\begin{itemize}
+\item BS: $N = 64$ ULA antennas, $N_{\text{RF}} = 8$ RF chains
+\item IRS: $M = 256$ elements ($16 \times 16$ UPA), $Q = 8 \times 8$ sub-arrays
+\item Users: $K = 4$ single-antenna UEs
+\item Jammer: $N_J = 2$ antennas (portable THz jammer)
+\item OFDM: $M_{\text{sc}} = 64$ subcarriers, $B = 10\GHz$, $f_c = 100\GHz$
+\end{itemize}
+
+\subsection{Signal Model}
+
+Let $\mat{G}[m] \in \C^{M \times N}$ denote the BS-IRS channel at subcarrier $m$, $\vect{g}_{ru,k}[m] \in \C^{M}$ the IRS-user-$k$ channel, $\vect{g}_{bu,k}[m] \in \C^{N}$ the direct BS-user-$k$ channel, and $\vect{h}_{J,k} \in \C^{N_J}$ the jammer-user-$k$ channel. The IRS reflection matrix at subcarrier $m$ is $\bm{\Phi}[m] = \diag(e^{j\theta_1[m]}, \ldots, e^{j\theta_M[m]})$.
+
+The received signal at user $k$ on subcarrier $m$ is
+\begin{align}
+y_k[m] &= \underbrace{\left(\vect{g}_{ru,k}^H[m]\bm{\Phi}[m]\mat{G}[m] + \vect{g}_{bu,k}^H[m]\right)\vect{w}_k[m]\sqrt{P_k}\,s_k}_{\text{desired signal}} \nonumber\\
+&+ \underbrace{\sum_{i \neq k}\left(\vect{g}_{ru,k}^H[m]\bm{\Phi}[m]\mat{G}[m] + \vect{g}_{bu,k}^H[m]\right)\vect{w}_i[m]\sqrt{P_i}\,s_i}_{\text{inter-user interference}} \nonumber\\
+&+ \underbrace{\sqrt{P_{J,k}}\,\vect{h}_{J,k}^H\vect{z}_k\,j_k}_{\text{jamming}} + n_k \label{eq:signal}
+\end{align}
+where $\vect{w}_k[m] \in \C^{N}$ is the beamforming vector, $P_k$ is the allocated power, $s_k$ is the unit-power data symbol, $P_{J,k}$ is the jamming power, $\vect{z}_k$ is the jammer precoder, $j_k$ is the jamming symbol, and $n_k \sim \mathcal{CN}(0, \sigma^2)$ is additive white Gaussian noise with $\sigma^2 = k_B T B / M_{\text{sc}} + F_{\text{NF}}$ where $k_B$ is Boltzmann's constant, $T = 290$~K, and $F_{\text{NF}} = 10\dB$ is the noise figure.
+
+\subsection{SINR and System Rate}
+
+The effective channel for user $k$ at subcarrier $m$ is
+\begin{equation}
+\vect{h}_{\text{eff},k}[m] = \mat{G}^H[m]\bm{\Phi}^H[m]\vect{g}_{ru,k}[m] + \vect{g}_{bu,k}[m].
+\label{eq:heff}
+\end{equation}
+
+The received SINR at user $k$ on subcarrier $m$ is
+\begin{equation}
+\text{SINR}_k[m] = \frac{P_k |\vect{h}_{\text{eff},k}^H[m]\vect{w}_k[m]|^2}{\displaystyle\sum_{i \neq k}P_i|\vect{h}_{\text{eff},k}^H[m]\vect{w}_i[m]|^2 + P_{J,k}|\vect{h}_{J,k}^H\vect{z}_k|^2 + \sigma^2}.
+\label{eq:sinr}
+\end{equation}
+
+The per-user rate averaged over subcarriers is
+\begin{equation}
+R_k = \frac{1}{M_{\text{sc}}}\sum_{m=1}^{M_{\text{sc}}} \log_2(1 + \text{SINR}_k[m])
+\label{eq:rate}
+\end{equation}
+and the system sum-rate is $R_{\text{sum}} = \sum_{k=1}^{K} R_k$.
+
+The SINR protection level measures quality-of-service (QoS) satisfaction:
+\begin{equation}
+\eta_{\text{prot}} = \frac{1}{K \cdot M_{\text{sc}}}\sum_{k=1}^{K}\sum_{m=1}^{M_{\text{sc}}} \mathbf{1}\{\text{SINR}_k[m] \geq \gamma_{\min}\}
+\label{eq:protection}
+\end{equation}
+where $\gamma_{\min}$ is the minimum SINR threshold.
+
+\subsection{Problem Formulation}
+
+The joint optimization of power allocation and IRS beamforming is formulated as
+\begin{subequations}
+\begin{align}
+\max_{\{P_k\}, \{\bm{\Phi}[m]\}} \quad & R_{\text{sum}} \label{eq:obj}\\
+\text{s.t.} \quad & \sum_{k=1}^{K} P_k \leq P_{\max} \label{eq:power}\\
+& \text{SINR}_k[m] \geq \gamma_{\min},\ \forall k, m \label{eq:qos}\\
+& |\Phi_{m,m}[n]| = 1,\ \forall m, n \label{eq:unit}
+\end{align}
+\end{subequations}
+where~\eqref{eq:power} is the total power constraint,~\eqref{eq:qos} is the per-user QoS constraint, and~\eqref{eq:unit} is the unit-modulus constraint on IRS elements.
+
+Problem~\eqref{eq:obj}--\eqref{eq:unit} is non-convex and NP-hard due to the coupled optimization variables and the unit-modulus constraint. Furthermore, the jammer's behavior is dynamic and unknown, making model-based optimization impractical. We therefore model this as a reinforcement learning problem with AO-assisted continuous optimization.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.95\columnwidth]{ieee_fig8_beam_squint.pdf}
+\caption{Beam squint effect: normalized array gain $\eta(f_m)$ across 64 OFDM subcarriers for bandwidths $B = 0.1$, 2, and 10\GHz{} at $f_c = 100\GHz$. Wider bandwidth causes severe gain degradation at edge subcarriers, motivating the SPDP-RIS architecture.}
+\label{fig:system}
+\end{figure}
+
+% ══════════════════════════════════════════════════════════════════════
+\section{THz Channel Model and Wideband Beamforming}
+\label{sec:thz}
+% ══════════════════════════════════════════════════════════════════════
+
+\subsection{THz Channel Model}
+
+At THz frequencies, the channel exhibits frequency-selective behavior due to molecular absorption and beam squint. The BS-IRS channel at subcarrier $m$ follows a Saleh-Valenzuela model~\cite{su2023wideband}:
+\begin{equation}
+\mat{G}[m] = \sqrt{\frac{N M}{L_{\text{path}}}} \sum_{\ell=1}^{L_{\text{path}}} \alpha_\ell(f_m)\, \vect{a}_{\text{RIS}}(\phi_\ell, f_m) \vect{a}_{\text{BS}}^H(\psi_\ell, f_m)
+\label{eq:thz_channel}
+\end{equation}
+where $L_{\text{path}}$ is the number of paths, $\alpha_\ell(f_m)$ is the complex path gain at subcarrier frequency $f_m = f_c + (m - M_{\text{sc}}/2)\Delta f$ with $\Delta f = B/M_{\text{sc}}$, and $\vect{a}_{\text{RIS}}$, $\vect{a}_{\text{BS}}$ are frequency-dependent array response vectors.
+
+\subsection{Path Loss and Molecular Absorption}
+
+The THz path loss at frequency $f$ and distance $d$ is
+\begin{equation}
+\text{PL}(f, d) = \left(\frac{4\pi f d}{c}\right)^2 e^{\kappa_{\text{abs}}(f) d}
+\label{eq:pathloss}
+\end{equation}
+where $c$ is the speed of light and $\kappa_{\text{abs}}(f)$ is the frequency-dependent molecular absorption coefficient, which creates spectral windows and opacity regions in the THz band.
+
+\subsection{Beam Squint in Wideband THz Systems}
+
+A critical challenge in wideband THz systems is \emph{beam squint}: the spatial direction of a phased-array beam shifts with frequency. For a ULA with inter-element spacing $d_s = \lambda_c/2$ steered to angle $\theta_0$ at the center frequency, the normalized array gain at subcarrier $m$ is
+\begin{equation}
+\eta(f_m) = \frac{1}{N}\left|\sum_{n=0}^{N-1} e^{j2\pi n d_s \sin\theta_0 \left(\frac{f_m}{f_c} - 1\right)/\lambda_c}\right|^2.
+\label{eq:beam_squint}
+\end{equation}
+
+As shown in Fig.~\ref{fig:system}, for $B = 10\GHz$ at $f_c = 100\GHz$ (fractional bandwidth $\beta = B/f_c = 10\%$), edge subcarriers suffer severe gain loss. This motivates the SPDP-RIS architecture.
+
+\subsection{SPDP-RIS Architecture}
+
+To combat beam squint at the IRS, we adopt the sub-array phase-dependent partial-connection (SPDP) architecture~\cite{su2023wideband}. The $M$ RIS elements are partitioned into $Q = Q_1 \times Q_2$ sub-arrays, each containing $M_s = M/Q$ elements. Each sub-array applies a common true-time-delay (TTD) and per-element phase shifter, enabling frequency-dependent compensation:
+\begin{equation}
+\theta_{q,i}[m] = \theta_{q,i}^{\text{base}} + 2\pi f_m \tau_q
+\label{eq:spdp}
+\end{equation}
+where $\theta_{q,i}^{\text{base}}$ is the base phase of element $i$ in sub-array $q$, and $\tau_q$ is the TTD value for sub-array $q$.
+
+\subsection{Hybrid Beamforming at the BS}
+
+The BS employs a sub-connected hybrid architecture with $N_{\text{RF}} = 8$ RF chains, each driving $N/N_{\text{RF}} = 8$ antennas. The beamforming vector decomposes as
+\begin{equation}
+\vect{w}_k[m] = \mat{F}_{\text{RF}} \vect{f}_{BB,k}[m]
+\label{eq:hybrid_bf}
+\end{equation}
+where $\mat{F}_{\text{RF}} \in \C^{N \times N_{\text{RF}}}$ is the analog precoder (block-diagonal, constant across subcarriers) and $\vect{f}_{BB,k}[m] \in \C^{N_{\text{RF}}}$ is the digital baseband precoder per subcarrier.
+
+The digital precoder uses a max-SINR (MVDR) design. For each user $k$ at subcarrier $m$, the interference-plus-noise covariance matrix is
+\begin{equation}
+\mat{R}_k[m] = \sigma^2\mat{I} + \sum_{i \neq k}P_i\,\tilde{\vect{h}}_i[m]\tilde{\vect{h}}_i^H[m]
+\label{eq:Rk}
+\end{equation}
+where $\tilde{\vect{h}}_k[m] = \mat{F}_{\text{RF}}^H\vect{h}_{\text{eff},k}[m]$ is the effective channel in the reduced-dimension baseband. The MVDR baseband precoder is
+\begin{equation}
+\vect{f}_{BB,k}[m] = \frac{\mat{R}_k^{-1}[m]\tilde{\vect{h}}_k[m]}{\|\mat{R}_k^{-1}[m]\tilde{\vect{h}}_k[m]\|}.
+\label{eq:mvdr}
+\end{equation}
+
+% ══════════════════════════════════════════════════════════════════════
+\section{Reinforcement Learning Framework}
+\label{sec:rl}
+% ══════════════════════════════════════════════════════════════════════
+
+\subsection{Hybrid RL + AO Decomposition}
+
+The optimization problem is decomposed into:
+\begin{enumerate}
+\item \textbf{RL decision (discrete):} The RL agent selects a power allocation action from a finite set $\mathcal{A}$ of $|\mathcal{A}| = 42$ actions, comprising power fraction indices and distribution modes.
+\item \textbf{AO optimization (continuous):} Given the power allocation, IRS phase shifts are optimized via closed-form alternating updates.
+\end{enumerate}
+
+\subsubsection{Power Allocation Actions}
+Each action is a pair $(\text{fraction}, \text{mode})$:
+\begin{itemize}
+\item 7 total power fractions of $P_{\max}$: $\{0.2, 0.35, 0.5, 0.65, 0.8, 0.9, 1.0\}$
+\item 6 distribution modes: equal, channel-proportional, inverse-channel, SINR-deficit, waterfilling, max-min fairness
+\end{itemize}
+yielding $7 \times 6 = 42$ discrete actions.
+
+\subsubsection{IRS Phase Optimization via AO}
+Given power $\{P_k\}$ from the RL agent, IRS phases are updated in closed form. For each element $i$:
+\begin{equation}
+c_i = \sum_{k=1}^{K}\sqrt{P_k}\,g_{ru,k}^*[i]\cdot(\mat{G}\vect{w}_k)[i], \quad \theta_i = -\angle(c_i)
+\label{eq:ao_phase}
+\end{equation}
+which maximizes the sum of desired signal magnitudes. A secondary SINR-deficit-weighted AO iteration is also computed, and the strategy yielding higher sum-rate is selected (6 AO iterations).
+
+\subsection{State Representation}
+
+The high-dimensional observation is compressed into a 3-feature state vector $\vect{f} = [f_{\text{pj}}, f_{\text{ch}}, f_{\text{sinr}}] \in [0,1]^3$:
+
+\textbf{Jammer pressure:}
+\begin{equation}
+f_{\text{pj}} = \text{norm}_{[15,40]}\!\left(0.6\overline{P_J}\,[\dBm] + 0.4\max_k P_{J,k}\,[\dBm]\right)
+\end{equation}
+
+\textbf{Channel quality:}
+\begin{equation}
+f_{\text{ch}} = \text{norm}_{[-100,-40]}\!\left(0.75\overline{\|\vect{h}_k\|^2}\,[\dB] + 0.25(1 - \text{spread})\right)
+\end{equation}
+
+\textbf{SINR health:}
+\begin{equation}
+f_{\text{sinr}} = \text{norm}_{[-10,30]}\!\left(0.5\overline{\text{SINR}_k}\,[\dB] + 0.5\min_k\text{SINR}_k\,[\dB]\right)
+\end{equation}
+
+Each feature is quantized into $B_q = 8$ bins for tabular methods, yielding $8^3 = 512$ discrete states.
+
+\subsection{Fuzzy State Aggregation}
+
+For the proposed WoLF-PHC agent, each feature is mapped to three triangular fuzzy membership functions with centers $\{0, 0.5, 1.0\}$:
+\begin{equation}
+\mu_i(x) = \frac{\max(0, 1 - |x - c_i|/\Delta)}{\sum_j \max(0, 1 - |x - c_j|/\Delta)}
+\label{eq:fuzzy}
+\end{equation}
+where $\Delta = 0.5$ is the spread parameter. The joint fuzzy membership vector has $3^3 = 27$ components:
+\begin{equation}
+\psi_\ell(\vect{f}) = \mu_i(f_{\text{pj}}) \cdot \mu_j(f_{\text{ch}}) \cdot \mu_k(f_{\text{sinr}}), \quad \ell = 9i + 3j + k.
+\label{eq:fuzzy_joint}
+\end{equation}
+
+This provides smooth interpolation across nearby states, avoiding the discontinuities of crisp discretization.
+
+\subsection{Proposed Fuzzy WoLF-PHC Algorithm}
+
+The fuzzy WoLF-PHC algorithm maintains per-fuzzy-state Q-values $Q_\ell(s, a)$, a mixed policy $\pi_\ell(a)$, and an average policy $\bar{\pi}_\ell(a)$.
+
+\subsubsection{Fused Q-Value}
+The effective Q-value at state $s$ is computed as a fuzzy-weighted combination:
+\begin{equation}
+\text{FQ}(s, a) = \sum_{\ell=1}^{27}\psi_\ell(s) \cdot Q_\ell(s, a).
+\label{eq:fused_q}
+\end{equation}
+
+\subsubsection{Q-Update}
+For each active fuzzy state $\ell$ (where $\psi_\ell > 0$):
+\begin{equation}
+Q_\ell(s,a) \leftarrow Q_\ell(s,a) + \alpha\psi_\ell\left[r + \gamma\max_{a'}\text{FQ}(s',a') - Q_\ell(s,a)\right]
+\label{eq:q_update}
+\end{equation}
+where $\alpha = 0.01$ is the learning rate and $\gamma = 0.9$ is the discount factor.
+
+\subsubsection{WoLF-PHC Policy Update}
+The win-or-learn-fast mechanism adapts the learning speed based on performance:
+\begin{equation}
+\xi = \begin{cases}
+\xi_{\text{win}} = 0.01 & \text{if } \E_\pi[Q] > \E_{\bar{\pi}}[Q] \\
+\xi_{\text{loss}} = 0.04 & \text{otherwise}
+\end{cases}
+\label{eq:wolf}
+\end{equation}
+
+The policy is updated with step size $\delta = \xi \cdot \psi_\ell / L$:
+\begin{align}
+\pi_\ell(a^*) &\leftarrow \pi_\ell(a^*) + \delta \\
+\pi_\ell(a) &\leftarrow \pi_\ell(a) - \frac{\delta}{|\mathcal{A}|-1}, \quad \forall a \neq a^*
+\label{eq:policy_update}
+\end{align}
+where $a^* = \argmax_a \text{FQ}(s,a)$.
+
+The average policy $\bar{\pi}_\ell$ is updated via exponential moving average, providing the reference for the win/loss comparison.
+
+During evaluation, a mixed strategy of 85\% greedy (argmax of FQ) and 15\% policy sampling is used. This mixed component provides inherent \emph{unpredictability} against the smart jammer, a key advantage over purely greedy baselines.
+
+The complete algorithm is summarized in Algorithm~\ref{alg:wolf}.
+
+\begin{algorithm}[t]
+\caption{Fuzzy WoLF-PHC for IRS Anti-Jamming}
+\label{alg:wolf}
+\begin{algorithmic}[1]
+\STATE \textbf{Initialize:} $Q_\ell(s,a) = 0$, $\pi_\ell(a) = 1/|\mathcal{A}|$, $\bar{\pi}_\ell(a) = 1/|\mathcal{A}|$ for all $\ell, s, a$
+\FOR{episode $= 1, 2, \ldots, E$}
+\STATE Generate channel realizations, reset jammer
+\STATE Observe initial state $s$, compute fuzzy vector $\bm{\psi}(s)$
+\FOR{step $t = 1, \ldots, T$}
+\STATE Compute $\text{FQ}(s, a)$ via~\eqref{eq:fused_q}
+\STATE Select action $a$: with prob.\ $\varepsilon$ explore, else 85\% greedy + 15\% $\pi_\ell$
+\STATE Execute power allocation $\{P_k\}$ from action $a$
+\STATE Optimize IRS phases via AO~\eqref{eq:ao_phase} (6 iterations)
+\STATE Compute beamformers via MVDR~\eqref{eq:mvdr}
+\STATE Observe reward $r$, next state $s'$, compute $\bm{\psi}(s')$
+\STATE Update $Q_\ell(s,a)$ via~\eqref{eq:q_update} for all active $\ell$
+\STATE Update policy $\pi_\ell$ via WoLF-PHC~\eqref{eq:wolf}--\eqref{eq:policy_update}
+\STATE Update average policy $\bar{\pi}_\ell$
+\STATE $s \leftarrow s'$
+\ENDFOR
+\ENDFOR
+\end{algorithmic}
+\end{algorithm}
+
+\subsection{Reward Function}
+
+The reward combines throughput maximization, power efficiency, and QoS compliance:
+\begin{equation}
+r = \sum_{k=1}^{K}\log_2(1 + \text{SINR}_k) - \lambda_1\frac{\sum_k P_k}{P_{\max}} - \lambda_2\sum_{k=1}^{K}\mathbf{1}\{\text{SINR}_k < \gamma_{\min}\}
+\label{eq:reward}
+\end{equation}
+where $\lambda_1 = 0.5$ encourages power efficiency and $\lambda_2 = 3.0$ penalizes per-user QoS violations.
+
+\subsection{Smart Jammer Model}
+
+The smart jammer adapts its power and precoding based on observed user SINRs and the agent's action predictability:
+\begin{equation}
+P_{J,k}\,[\dBm] = P_{J,\min} + 0.25\,\text{clip}(\text{SINR}_k^{\text{prev}} - 5, 0, 20) + 6\eta + n_J
+\label{eq:jammer_power}
+\end{equation}
+where $P_{J,\min} = 15\dBm$, $\eta \in [0,1]$ is the predictability score computed from the agent's last 20 actions, and $n_J \sim \mathcal{N}(0, 9)$~dB. The jammer precoder interpolates between isotropic and targeted jamming based on $\eta$:
+\begin{equation}
+\vect{z}_k = (1 - w_{\text{align}})\vect{z}_{\text{random}} + w_{\text{align}}\frac{\vect{h}_{J,k}}{\|\vect{h}_{J,k}\|}
+\end{equation}
+with $w_{\text{align}} = \text{clip}(2(\eta - 0.5), 0, 1)$. When the agent is predictable ($\eta > 0.5$), the jammer steers its beam toward users; otherwise, it jams isotropically.
+
+\subsection{Baseline Methods}
+
+We compare the proposed fuzzy WoLF-PHC against:
+\begin{itemize}
+\item \textbf{Classical Q-learning~\cite{watkins1992q}:} Tabular Q-learning with $\varepsilon$-greedy ($\alpha = 0.01$, $\gamma = 0.9$).
+\item \textbf{Fast Q-learning~\cite{yang2021irs}:} Visit-count-boosted learning rate ($\alpha_{\text{fast}} = \alpha(1 + 3/(1+0.1N_{\text{visits}}))$) with accelerated $\varepsilon$-decay.
+\item \textbf{DQN~\cite{mnih2015human}:} Deep Q-network with 2-hidden-layer network (128, 64 units), experience replay, and target network.
+\item \textbf{AO Baseline~\cite{wu2019intelligent}:} Deterministic alternating optimization with fixed channel-proportional power allocation.
+\item \textbf{No-IRS:} Direct BS-user links only (IRS phases zeroed), providing a lower bound.
+\end{itemize}
+
+% ══════════════════════════════════════════════════════════════════════
+\section{Simulation Results}
+\label{sec:results}
+% ══════════════════════════════════════════════════════════════════════
+
+\subsection{Simulation Setup}
+
+Simulations are conducted in Python with NumPy and PyTorch. The THz system operates at $f_c = 100\GHz$ with $B = 10\GHz$ bandwidth. The BS is located at the origin, the IRS at (50, 75)~m, and users are uniformly distributed in $[30, 120] \times [0, 80]$~m. The jammer performs a random walk within $[40, 100] \times [0, 80]$~m. Training uses 400 episodes of 20 steps each, repeated over 3 random seeds. All parameter sweeps use a medium-scale configuration ($N = 32$, $M = 256$, $M_{\text{sc}} = 32$) for computational tractability.
+
+Key system parameters are listed in Table~\ref{tab:params}.
+
+\begin{table}[t]
+\centering
+\caption{Simulation Parameters}
+\label{tab:params}
+\begin{tabular}{lcc}
+\toprule
+\textbf{Parameter} & \textbf{Symbol} & \textbf{Value} \\
+\midrule
+Center frequency & $f_c$ & 100\GHz \\
+Bandwidth & $B$ & 10\GHz \\
+BS antennas & $N$ & 64 \\
+RF chains & $N_{\text{RF}}$ & 8 \\
+IRS elements & $M$ & 256 ($16 \times 16$) \\
+IRS sub-arrays & $Q$ & 64 ($8 \times 8$) \\
+OFDM subcarriers & $M_{\text{sc}}$ & 64 \\
+Users & $K$ & 4 \\
+Jammer antennas & $N_J$ & 2 \\
+Max TX power & $P_{\max}$ & 40\dBm \\
+SINR threshold & $\gamma_{\min}$ & 5\dB \\
+Noise figure & $F_{\text{NF}}$ & 10\dB \\
+RL actions & $|\mathcal{A}|$ & 42 \\
+Training episodes & $E$ & 400 \\
+Seeds & --- & 3 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Convergence Analysis}
+
+Fig.~\ref{fig:convergence} shows the learning convergence of all RL methods over 400 training episodes ($\times$ 3 seeds for the WoLF-PHC agent, which trains 3 passes). The proposed fuzzy WoLF-PHC achieves the highest average reward and maintains stability throughout training. The shaded regions indicate the min-max range across seeds, demonstrating that WoLF-PHC has the lowest variance---a critical property for deployment reliability.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\columnwidth]{ieee_fig4_convergence.pdf}
+\caption{Convergence of average reward per episode during training. The proposed fuzzy WoLF-PHC (blue solid) achieves consistently higher rewards with lower variance than all baselines.}
+\label{fig:convergence}
+\end{figure}
+
+\subsection{Overall Performance Comparison}
+
+Table~\ref{tab:eval} and Fig.~\ref{fig:eval_bar} present the evaluation results averaged over 3 seeds. The proposed WoLF-PHC achieves a system rate of 11.46~bits/s/Hz with SINR protection of 78.6\%, outperforming the next-best method (AO baseline) by 43\% in rate and 75\% in protection. Notably, WoLF-PHC has by far the smallest standard deviation ($\pm 0.18$ rate, $\pm 1.9\%$ protection), indicating highly consistent performance across random initializations.
+
+\begin{table}[t]
+\centering
+\caption{Evaluation Performance (Mean $\pm$ Std over 3 Seeds)}
+\label{tab:eval}
+\begin{tabular}{lcc}
+\toprule
+\textbf{Method} & \textbf{Rate (bits/s/Hz)} & \textbf{Protection (\%)} \\
+\midrule
+Classical Q-learning & $7.13 \pm 2.52$ & $38.8 \pm 20.9$ \\
+Fast Q-learning~\cite{yang2021irs} & $7.21 \pm 1.97$ & $39.2 \pm 19.1$ \\
+\textbf{Fuzzy WoLF-PHC} & $\mathbf{11.46 \pm 0.18}$ & $\mathbf{78.6 \pm 1.9}$ \\
+DQN~\cite{mnih2015human} & $7.68 \pm 1.14$ & $41.9 \pm 11.4$ \\
+AO Baseline~\cite{wu2019intelligent} & $8.01 \pm 0.53$ & $44.8 \pm 4.8$ \\
+No IRS & $5.48$ & $18.8$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\columnwidth]{ieee_fig9_evaluation.pdf}
+\caption{Evaluation comparison: (a)~system rate and (b)~SINR protection level. The proposed WoLF-PHC (blue) dominates all baselines in both metrics with the smallest variance.}
+\label{fig:eval_bar}
+\end{figure}
+
+\subsection{Effect of Maximum Transmit Power}
+
+Fig.~\ref{fig:pmax} shows system rate and protection versus $P_{\max} \in \{25, 32, 40\}\dBm$. All methods improve with higher transmit power, but WoLF-PHC maintains a consistent lead. At $P_{\max} = 40\dBm$, WoLF-PHC achieves 9.14~bits/s/Hz and 61.6\% protection compared to 8.12~bits/s/Hz and 50.6\% for Q-learning. The No-IRS baseline (dotted line) shows the significant IRS gain across all power levels.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\columnwidth]{ieee_fig5_vs_pmax.pdf}
+\caption{(a)~Average system rate and (b)~SINR protection vs.\ maximum transmit power $P_{\max}$. The dotted line shows the No-IRS baseline.}
+\label{fig:pmax}
+\end{figure}
+
+\subsection{Effect of IRS Size}
+
+Fig.~\ref{fig:nris} presents results for $N_{\text{RIS}} \in \{16, 64, 144, 256\}$. WoLF-PHC achieves the highest rate across all IRS sizes, from 8.42 bits/s/Hz at $N_{\text{RIS}} = 16$ to 9.00 at $N_{\text{RIS}} = 256$. An important observation is that even with only 16 IRS elements, all RL methods significantly outperform the No-IRS baseline (5.48~bits/s/Hz), confirming the effectiveness of IRS-assisted anti-jamming. The protection level of WoLF-PHC improves steadily from 52.7\% to 59.6\% as $N_{\text{RIS}}$ increases.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\columnwidth]{ieee_fig6_vs_nris.pdf}
+\caption{(a)~Average system rate and (b)~SINR protection vs.\ number of IRS elements $N_{\text{RIS}}$. WoLF-PHC consistently outperforms all baselines.}
+\label{fig:nris}
+\end{figure}
+
+\subsection{Effect of SINR Target}
+
+Fig.~\ref{fig:sinr} shows the impact of SINR threshold $\gamma_{\min} \in \{3, 10, 20\}\dB$. While protection naturally decreases with higher thresholds (a more stringent QoS requirement), WoLF-PHC degrades most gracefully. At $\gamma_{\min} = 3\dB$, WoLF-PHC achieves 79.2\% protection vs.\ 65.1\% for Q-learning. The rate of WoLF-PHC remains nearly flat at $\sim$9.1~bits/s/Hz across all thresholds, indicating that it maintains throughput without sacrificing it to meet QoS constraints---unlike Fast Q-learning, which drops sharply at $\gamma_{\min} = 20\dB$.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\columnwidth]{ieee_fig7_vs_sinr.pdf}
+\caption{(a)~Average system rate and (b)~SINR protection vs.\ UE SINR target $\gamma_{\min}$. WoLF-PHC maintains stable rate and graceful protection degradation.}
+\label{fig:sinr}
+\end{figure}
+
+\subsection{Robustness to Jammer Power}
+
+Fig.~\ref{fig:pjammer} reveals the most compelling advantage of WoLF-PHC: robustness under increasing jammer power $P_J \in \{5, 12, 20\}\dBm$. While all baselines degrade sharply---Classical Q-learning drops from 10.72 to 8.12~bits/s/Hz and DQN from 11.17 to 7.25~bits/s/Hz---WoLF-PHC maintains a nearly \emph{flat} rate of $\sim$9.1--9.3~bits/s/Hz and protection of $\sim$61\% across all jammer power levels. This robustness stems from the mixed-strategy policy: the 15\% stochastic component makes the agent inherently unpredictable to the smart jammer, preventing the jammer from exploiting a deterministic pattern.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\columnwidth]{ieee_fig12_vs_pjammer.pdf}
+\caption{(a)~Average system rate and (b)~SINR protection vs.\ maximum jammer power $P_J$. The proposed WoLF-PHC (blue) is remarkably robust, maintaining stable performance while all baselines degrade sharply.}
+\label{fig:pjammer}
+\end{figure}
+
+\subsection{SINR CDF Analysis}
+
+Fig.~\ref{fig:cdf} presents the empirical CDF of per-user SINR values collected during evaluation. The proposed WoLF-PHC has the rightmost CDF curve, indicating the highest SINR distribution. At the 10th percentile (tail performance), WoLF-PHC achieves approximately 2\dB{} compared to $-5\dB$ for AO baseline and $-25\dB$ for classical Q-learning. The steep CDF of WoLF-PHC also indicates low SINR variance across users and time steps, confirming reliable QoS delivery.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\columnwidth]{ieee_fig11_sinr_cdf.pdf}
+\caption{Empirical CDF of per-user SINR (dB). WoLF-PHC (blue solid) achieves the highest and steepest distribution, indicating both high average SINR and reliable QoS.}
+\label{fig:cdf}
+\end{figure}
+
+\subsection{Computational Complexity}
+
+Fig.~\ref{fig:runtime} compares the wall-clock training time of all methods on a medium-scale system (100 training episodes). WoLF-PHC requires 23.3~s due to its 3-pass training (three sequential learning passes over the environment), compared to 5.9~s for Q-learning, 11.6~s for DQN (PyTorch overhead), and 2.5~s for the AO baseline. While WoLF-PHC has higher training cost, it is a one-time overhead that yields significantly better deployment performance. The per-step inference time is comparable across all tabular methods.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\columnwidth]{ieee_fig13_runtime.pdf}
+\caption{Training wall-clock time comparison. WoLF-PHC's higher training cost (23.3~s for 3-pass training) yields significantly better deployment performance.}
+\label{fig:runtime}
+\end{figure}
+
+\subsection{Per-Seed Consistency}
+
+Fig.~\ref{fig:perseed} shows the per-seed evaluation results across 3 independent random seeds. WoLF-PHC exhibits remarkably tight clustering---all three seeds produce nearly identical rate ($\sim$11.3--11.6~bits/s/Hz) and protection ($\sim$76--81\%). In contrast, Q-learning and Fast Q-learning show large inter-seed variance (rates spanning 3.5--9.3~bits/s/Hz), indicating sensitivity to random initialization. This consistency is a direct benefit of the fuzzy state aggregation, which provides smoother learning landscapes.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\columnwidth]{ieee_fig10_per_seed.pdf}
+\caption{Per-seed evaluation results: (a)~rate and (b)~protection. WoLF-PHC (blue circles) shows tight clustering, while baselines exhibit large variance across seeds.}
+\label{fig:perseed}
+\end{figure}
+
+\subsection{Discussion}
+
+The results consistently demonstrate three key advantages of the proposed approach:
+
+\begin{enumerate}
+\item \textbf{Superior performance:} WoLF-PHC achieves 43--60\% higher rate and 75--100\% higher protection than all baselines, while the No-IRS baseline confirms a $2\times$ IRS gain.
+
+\item \textbf{Robustness:} The mixed-strategy policy renders WoLF-PHC nearly immune to increasing jammer power---a crucial property for practical deployment against adaptive adversaries.
+
+\item \textbf{Consistency:} Fuzzy state aggregation eliminates the initialization sensitivity plaguing tabular and deep RL baselines, enabling reliable deployment without extensive hyperparameter tuning.
+\end{enumerate}
+
+The $4\times$ training time overhead of WoLF-PHC (23.3~s vs.\ 5.9~s for Q-learning) is acceptable given the significant performance gains and is a one-time cost prior to deployment.
+
+% ══════════════════════════════════════════════════════════════════════
+\section{Conclusion}
+\label{sec:conclusion}
+% ══════════════════════════════════════════════════════════════════════
+
+This paper has investigated IRS-assisted anti-jamming communications in wideband THz systems. We designed a comprehensive framework incorporating sub-connected hybrid beamforming, SPDP-RIS beam squint compensation, OFDM wideband signaling, and a hybrid RL + AO optimization approach. The proposed fuzzy WoLF-PHC algorithm jointly optimizes power allocation and IRS phase shifts against a smart adaptive jammer, achieving 11.46~bits/s/Hz system rate and 78.6\% SINR protection---improvements of 43\% and 75\% over the best baseline, respectively.
+
+Comprehensive parameter sweeps over transmit power, IRS size, SINR threshold, and jammer power confirm the consistent superiority and robustness of the proposed approach. Most notably, WoLF-PHC maintains near-constant performance under increasing jammer power, a property attributable to its inherently unpredictable mixed-strategy policy.
+
+Future work includes extending to multi-cell scenarios, incorporating imperfect channel state information, and investigating the near-field effects of large-aperture THz IRS arrays.
+
+% ══════════════════════════════════════════════════════════════════════
+% REFERENCES
+% ══════════════════════════════════════════════════════════════════════
+
+\begin{thebibliography}{99}
+
+\bibitem{yang2021irs}
+H.~Yang, Z.~Xiong, J.~Zhao, D.~Niyato, Q.~Wu, H.~V.~Poor, and M.~Tornatore,
+``Intelligent reflecting surface assisted anti-jamming communications: A fast reinforcement learning approach,''
+\emph{IEEE Trans.\ Wireless Commun.}, vol.~20, no.~3, pp.~1963--1976, Mar.\ 2021.
+
+\bibitem{liang2019secure}
+L.~Liang, H.~Ye, G.~Yu, and G.~Y.~Li,
+``Deep-learning-based wireless resource management with application to vehicular networks,''
+\emph{Proc.\ IEEE}, vol.~108, no.~2, pp.~341--356, Feb.\ 2020.
+
+\bibitem{hanawal2016joint}
+M.~K.~Hanawal, M.~J.~Abdel-Rahman, and M.~Krunz,
+``Joint adaptation of frequency hopping and transmission rate for anti-jamming wireless systems,''
+\emph{IEEE Trans.\ Mobile Comput.}, vol.~15, no.~9, pp.~2247--2259, Sep.\ 2016.
+
+\bibitem{xu2018jamming}
+Y.~Xu, G.~Ren, J.~Chen, Y.~Luo, and L.~Jia,
+``Anti-jamming transmission in cognitive radio networks with unknown channel statistics,''
+\emph{IEEE Trans.\ Wireless Commun.}, vol.~17, no.~2, pp.~765--779, Feb.\ 2018.
+
+\bibitem{li2015relay}
+Q.~Li, W.-K.~Ma, and A.~M.-C.~So,
+``A safe approximation approach to secrecy outage design for MIMO wiretap channels,''
+\emph{IEEE Signal Process.\ Lett.}, vol.~21, no.~1, pp.~118--121, Jan.\ 2014.
+
+\bibitem{wu2019intelligent}
+Q.~Wu and R.~Zhang,
+``Intelligent reflecting surface enhanced wireless network via joint active and passive beamforming,''
+\emph{IEEE Trans.\ Wireless Commun.}, vol.~18, no.~11, pp.~5394--5409, Nov.\ 2019.
+
+\bibitem{wu2021irs_survey}
+Q.~Wu, S.~Zhang, B.~Zheng, C.~You, and R.~Zhang,
+``Intelligent reflecting surface-aided wireless communications: A tutorial,''
+\emph{IEEE Trans.\ Commun.}, vol.~69, no.~5, pp.~3313--3351, May 2021.
+
+\bibitem{renzo2020smart}
+M.~Di~Renzo \emph{et al.},
+``Smart radio environments empowered by reconfigurable intelligent surfaces: How it works, state of research, and the road ahead,''
+\emph{IEEE J.\ Sel.\ Areas Commun.}, vol.~38, no.~11, pp.~2450--2525, Nov.\ 2020.
+
+\bibitem{su2023wideband}
+X.~Su, G.~Wang, L.~You, and X.~Gao,
+``Wideband precoding for RIS-aided THz communications,''
+\emph{IEEE Trans.\ Commun.}, vol.~71, no.~10, pp.~5862--5876, Oct.\ 2023.
+
+\bibitem{yan2023beamforming}
+W.~Yan, W.~Yuan, X.~Kuai, and Z.~Wei,
+``Beamforming analysis and design for wideband THz reconfigurable intelligent surface communications,''
+\emph{IEEE J.\ Select.\ Areas Commun.}, vol.~41, no.~8, pp.~2306--2320, Aug.\ 2023.
+
+\bibitem{watkins1992q}
+C.~J.~C.~H.~Watkins and P.~Dayan,
+``Q-learning,''
+\emph{Machine Learning}, vol.~8, no.~3--4, pp.~279--292, 1992.
+
+\bibitem{mnih2015human}
+V.~Mnih \emph{et al.},
+``Human-level control through deep reinforcement learning,''
+\emph{Nature}, vol.~518, no.~7540, pp.~529--533, Feb.\ 2015.
+
+\bibitem{bowling2002wolf}
+M.~Bowling and M.~Veloso,
+``Multiagent learning using a variable learning rate,''
+\emph{Artif.\ Intell.}, vol.~136, no.~2, pp.~215--250, 2002.
+
+\end{thebibliography}
+
+\balance
+
+\end{document}

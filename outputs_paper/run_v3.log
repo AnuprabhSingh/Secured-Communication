@@ -1,0 +1,117 @@
+======================================================================
+  THz Paper-Quality Simulation (fast version)
+======================================================================
+  Convergence: 64 BS, 256 RIS, 300 ep × 3 seeds
+  Sweeps:      64 BS, 256 RIS, 200 ep × 2 seeds
+  Output: /Users/anuprabh/Desktop/Secured Comm/outputs_paper
+======================================================================
+
+[1/6] Beam Squint Analysis...
+  Done (0s)
+
+[2/6] Convergence Experiment...
+  Seed 1/3:
+    q_learning...     ep 100/300: avg_reward=11.46
+    ep 200/300: avg_reward=11.65
+    ep 300/300: avg_reward=11.85
+rate=13.89, prot=93.5%
+    fast_q_learning...     ep 100/300: avg_reward=11.58
+    ep 200/300: avg_reward=11.63
+    ep 300/300: avg_reward=11.85
+rate=13.89, prot=93.5%
+    fuzzy_wolf_phc...     ep 100/300: avg_reward=11.46
+    ep 200/300: avg_reward=11.65
+    ep 300/300: avg_reward=11.85
+rate=14.01, prot=92.9%
+    dqn...     ep 100/300: avg_reward=11.62
+    ep 200/300: avg_reward=11.77
+    ep 300/300: avg_reward=11.89
+rate=13.63, prot=89.4%
+    baseline_ao... rate=11.47, prot=79.2%
+  Seed 2/3:
+    q_learning...     ep 100/300: avg_reward=12.23
+    ep 200/300: avg_reward=13.24
+    ep 300/300: avg_reward=13.43
+rate=13.70, prot=94.7%
+    fast_q_learning...     ep 100/300: avg_reward=12.41
+    ep 200/300: avg_reward=13.22
+    ep 300/300: avg_reward=13.42
+rate=13.64, prot=94.4%
+    fuzzy_wolf_phc...     ep 100/300: avg_reward=12.23
+    ep 200/300: avg_reward=13.24
+    ep 300/300: avg_reward=13.43
+rate=13.68, prot=94.2%
+    dqn...     ep 100/300: avg_reward=11.97
+    ep 200/300: avg_reward=12.85
+    ep 300/300: avg_reward=12.99
+rate=10.95, prot=79.9%
+    baseline_ao... rate=12.85, prot=89.0%
+  Seed 3/3:
+    q_learning...     ep 100/300: avg_reward=12.39
+    ep 200/300: avg_reward=12.75
+    ep 300/300: avg_reward=13.31
+rate=13.00, prot=92.7%
+    fast_q_learning...     ep 100/300: avg_reward=12.10
+    ep 200/300: avg_reward=11.73
+    ep 300/300: avg_reward=12.36
+rate=11.02, prot=81.6%
+    fuzzy_wolf_phc...     ep 100/300: avg_reward=12.39
+    ep 200/300: avg_reward=12.75
+    ep 300/300: avg_reward=13.31
+rate=13.05, prot=93.6%
+    dqn...     ep 100/300: avg_reward=12.52
+    ep 200/300: avg_reward=13.01
+    ep 300/300: avg_reward=13.60
+rate=12.06, prot=86.7%
+    baseline_ao... rate=12.66, prot=88.3%
+  Convergence done (493s)
+
+[3/6] Sweep: pmax_dbm...
+    pmax_dbm=20.0 (1/4)
+    pmax_dbm=30.0 (2/4)
+    pmax_dbm=40.0 (3/4)
+    pmax_dbm=45.0 (4/4)
+  Done (629s)
+  Saved: fig_sweep_pmax_dbm.png
+
+[4/6] Sweep: n_ris_total...
+    n_ris_total=16 (1/4)
+    n_ris_total=64 (2/4)
+    n_ris_total=256 (3/4)
+    n_ris_total=1024 (4/4)
+  Done (673s)
+  Saved: fig_sweep_n_ris_total.png
+
+[5/6] Sweep: bandwidth_hz...
+    bandwidth_hz=500000000.0 (1/4)
+    bandwidth_hz=2000000000.0 (2/4)
+    bandwidth_hz=5000000000.0 (3/4)
+    bandwidth_hz=10000000000.0 (4/4)
+  Done (632s)
+  Saved: fig_sweep_bandwidth_hz.png
+
+[6/6] Sweep: sinr_min_db...
+    sinr_min_db=0.0 (1/4)
+    sinr_min_db=5.0 (2/4)
+    sinr_min_db=10.0 (3/4)
+    sinr_min_db=15.0 (4/4)
+  Done (629s)
+  Saved: fig_sweep_sinr_min_db.png
+
+======================================================================
+  DONE in 51.0 minutes
+  Output: /Users/anuprabh/Desktop/Secured Comm/outputs_paper
+  Files: fig_beam_squint.png, fig_convergence.png, fig_evaluation.png
+         fig_sweep_pmax_dbm.png, fig_sweep_n_ris_total.png
+         fig_sweep_bandwidth_hz.png, fig_sweep_sinr_min_db.png
+         paper_results.json
+======================================================================
+
+  === Evaluation Summary ===
+  Method                               Rate   Protection
+  ----------------------------------------------------
+  Classical Q-Learning              13.53±0.38      93.7±0.8%
+  Fast Q-Learning [19]              12.85±1.30      89.9±5.8%
+  Fuzzy WoLF-PHC (Proposed)         13.58±0.40      93.6±0.5%
+  DQN                               12.21±1.10      85.3±4.0%
+  AO Baseline [39]                  12.33±0.61      85.5±4.5%

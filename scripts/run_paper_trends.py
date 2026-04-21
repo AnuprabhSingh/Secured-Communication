@@ -6,6 +6,8 @@ from dataclasses import asdict, replace
 from pathlib import Path
 import sys
 
+import matplotlib
+matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -19,8 +21,10 @@ from irs_anti_jamming.experiments import run_convergence_experiment, run_paramet
 
 
 METHOD_LABELS = {
-    "fuzzy_wolf_phc": "Fuzzy WoLF-PHC (Proposed)",
-    "fast_q_learning": "Fast Q-Learning",
+    "q_learning": "Classical Q-Learning",
+    "fuzzy_wolf_phc": "Enhanced Fuzzy WoLF-PHC (Proposed)",
+    "fast_q_learning": "Fast Q-Learning [19]",
+    "d3qn": "D3QN-PER [Wang16]",
     "baseline_ao": "Baseline 1 (AO-like)",
     "no_irs_power": "Optimal PA w/o IRS",
 }
@@ -44,8 +48,9 @@ def _plot_convergence(data: dict[str, np.ndarray], out_dir: Path) -> None:
 
     for key, label in [
         ("q_learning", "Classical Q-Learning"),
-        ("fast_q_learning", "Fast Q-Learning"),
-        ("fuzzy_wolf_phc", "Fuzzy WoLF-PHC (Proposed)"),
+        ("fast_q_learning", "Fast Q-Learning [19]"),
+        ("fuzzy_wolf_phc", "Enhanced Fuzzy WoLF-PHC (Proposed)"),
+        ("d3qn", "D3QN-PER [Wang16]"),
     ]:
         y = np.asarray(data[key], dtype=float)
         x_raw = np.arange(1, y.size + 1, dtype=float)
@@ -99,9 +104,9 @@ def main() -> None:
     parser.add_argument(
         "--profile",
         type=str,
-        choices=["quick", "balanced", "full"],
+        choices=["quick", "balanced", "full", "reproduce"],
         default="balanced",
-        help="Runtime profile: quick (fast), balanced (default), full (slowest)",
+        help="Runtime profile: quick (fast), balanced (default), full, reproduce (paper-like)",
     )
     parser.add_argument("--quick", action="store_true", help="Deprecated alias for --profile quick")
     parser.add_argument("--output", type=str, default="outputs", help="Output directory")
@@ -117,21 +122,25 @@ def main() -> None:
 
     profile = "quick" if args.quick else args.profile
 
+    if profile == "reproduce":
+        # Paper setting with tuned alpha for hybrid action space
+        rl_cfg = replace(rl_cfg, alpha=0.01)
+
     if profile == "quick":
         run_cfg_conv = replace(
             base_run_cfg,
-            train_episodes=220,
-            train_steps_per_episode=16,
-            eval_episodes=12,
-            eval_steps_per_episode=6,
+            train_episodes=300,
+            train_steps_per_episode=25,
+            eval_episodes=15,
+            eval_steps_per_episode=10,
             n_seeds=1,
         )
         run_cfg_sweep = replace(
             base_run_cfg,
-            train_episodes=80,
-            train_steps_per_episode=10,
-            eval_episodes=5,
-            eval_steps_per_episode=4,
+            train_episodes=200,
+            train_steps_per_episode=20,
+            eval_episodes=10,
+            eval_steps_per_episode=10,
             n_seeds=1,
         )
     elif profile == "balanced":
@@ -139,28 +148,31 @@ def main() -> None:
             base_run_cfg,
             train_episodes=600,
             train_steps_per_episode=25,
-            eval_episodes=16,
-            eval_steps_per_episode=10,
+            eval_episodes=15,
+            eval_steps_per_episode=8,
             n_seeds=2,
         )
         run_cfg_sweep = replace(
             base_run_cfg,
             train_episodes=400,
-            train_steps_per_episode=25,
+            train_steps_per_episode=20,
             eval_episodes=10,
-            eval_steps_per_episode=25,
+            eval_steps_per_episode=8,
+            n_seeds=3,
+        )
+    elif profile == "full":
+        run_cfg_conv = base_run_cfg
+        run_cfg_sweep = replace(
+            base_run_cfg,
+            train_episodes=800,
+            train_steps_per_episode=40,
+            eval_episodes=30,
+            eval_steps_per_episode=15,
             n_seeds=2,
         )
     else:
         run_cfg_conv = base_run_cfg
-        run_cfg_sweep = replace(
-            base_run_cfg,
-            train_episodes=360,
-            train_steps_per_episode=18,
-            eval_episodes=12,
-            eval_steps_per_episode=6,
-            n_seeds=2,
-        )
+        run_cfg_sweep = base_run_cfg
 
     print(
         f"Running profile={profile} with convergence_cfg={run_cfg_conv} and sweep_cfg={run_cfg_sweep}",

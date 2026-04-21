@@ -1,12 +1,12 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from itertools import product
 
 import numpy as np
 
 from .channel_model import ChannelSnapshot
-from .utils import linear_to_db, normalize, project_to_simplex
+from .system_model import build_phi_vector, compute_maxsinr_beamformers, effective_channels
+from .utils import db_to_linear, linear_to_db, normalize, project_to_simplex
 
 
 @dataclass(slots=True)
@@ -16,46 +16,134 @@ class ActionContext:
     sinr_min_db: float
     prev_sinr_linear: np.ndarray
     channel_quality_linear: np.ndarray
+    noise_watt: float
 
 
-class JointActionSpace:
-    def __init__(self, k_users: int, m_ris_elements: int, seed: int):
+def optimize_irs_phases(
+    snapshot: ChannelSnapshot,
+    p_bs_watt: np.ndarray,
+    m_ris_elements: int,
+    n_ao_iters: int = 6,
+    noise_watt: float = 3.16e-14,
+    sinr_min_linear: float = 10.0,
+) -> np.ndarray:
+    """IRS phase optimization via alternating optimization with max-SINR BF.
+
+    Uses two strategies and picks the best:
+    1. Standard sum-power weighted AO
+    2. SINR-deficit weighted AO (protects weak users)
+    """
+    if m_ris_elements <= 0:
+        return np.zeros(0, dtype=float)
+
+    k_users = p_bs_watt.shape[0]
+    G = snapshot.G
+    g_ru = snapshot.g_ru
+
+    best_theta = np.zeros(m_ris_elements, dtype=float)
+    best_rate = -np.inf
+
+    # === Strategy 1: Standard sum-rate AO ===
+    theta = np.zeros(m_ris_elements, dtype=float)
+    for _ in range(n_ao_iters):
+        phi = build_phi_vector(theta)
+        h_eff = effective_channels(snapshot, phi, use_irs=True)
+        w = compute_maxsinr_beamformers(h_eff, p_bs_watt, noise_watt)
+        composite = np.zeros(m_ris_elements, dtype=np.complex128)
+        for k in range(k_users):
+            composite += np.sqrt(p_bs_watt[k]) * np.conj(g_ru[k]) * (G @ w[k])
+        theta = np.mod(-np.angle(composite + 1e-15), 2.0 * np.pi)
+
+    # Evaluate
+    phi = build_phi_vector(theta)
+    h_eff = effective_channels(snapshot, phi, use_irs=True)
+    w = compute_maxsinr_beamformers(h_eff, p_bs_watt, noise_watt)
+    rate = 0.0
+    for k in range(k_users):
+        dk = p_bs_watt[k] * abs(h_eff[k] @ w[k]) ** 2
+        interf = noise_watt
+        for j in range(k_users):
+            if j != k:
+                interf += p_bs_watt[j] * abs(h_eff[k] @ w[j]) ** 2
+        rate += np.log2(1.0 + dk / max(interf, 1e-30))
+    if rate > best_rate:
+        best_rate = rate
+        best_theta = theta.copy()
+
+    # === Strategy 2: SINR-deficit weighted AO ===
+    theta = np.zeros(m_ris_elements, dtype=float)
+    for _ in range(n_ao_iters):
+        phi = build_phi_vector(theta)
+        h_eff = effective_channels(snapshot, phi, use_irs=True)
+        w = compute_maxsinr_beamformers(h_eff, p_bs_watt, noise_watt)
+
+        # Compute per-user SINR for weighting
+        sinrs = np.zeros(k_users)
+        for k in range(k_users):
+            dk = p_bs_watt[k] * abs(h_eff[k] @ w[k]) ** 2
+            interf = noise_watt
+            for j in range(k_users):
+                if j != k:
+                    interf += p_bs_watt[j] * abs(h_eff[k] @ w[j]) ** 2
+            sinrs[k] = dk / max(interf, 1e-30)
+
+        # Weight: inverse SINR (help weakest users more)
+        inv_sinr = 1.0 / np.maximum(sinrs, 1e-6)
+        user_weights = np.sqrt(p_bs_watt) * inv_sinr
+
+        composite = np.zeros(m_ris_elements, dtype=np.complex128)
+        for k in range(k_users):
+            composite += user_weights[k] * np.conj(g_ru[k]) * (G @ w[k])
+        theta = np.mod(-np.angle(composite + 1e-15), 2.0 * np.pi)
+
+    # Evaluate
+    phi = build_phi_vector(theta)
+    h_eff = effective_channels(snapshot, phi, use_irs=True)
+    w = compute_maxsinr_beamformers(h_eff, p_bs_watt, noise_watt)
+    rate = 0.0
+    for k in range(k_users):
+        dk = p_bs_watt[k] * abs(h_eff[k] @ w[k]) ** 2
+        interf = noise_watt
+        for j in range(k_users):
+            if j != k:
+                interf += p_bs_watt[j] * abs(h_eff[k] @ w[j]) ** 2
+        rate += np.log2(1.0 + dk / max(interf, 1e-30))
+    if rate > best_rate:
+        best_rate = rate
+        best_theta = theta.copy()
+
+    return best_theta
+
+
+class HybridActionSpace:
+    """Hybrid action space: RL chooses power allocation, AO optimizes IRS phases."""
+
+    def __init__(self, k_users: int, m_ris_elements: int, seed: int,
+                 n_ao_iters: int = 6, sinr_min_db: float = 10.0):
         self.k_users = k_users
         self.m_ris_elements = m_ris_elements
         self.rng = np.random.default_rng(seed)
+        self.n_ao_iters = n_ao_iters
+        self.sinr_min_linear = float(db_to_linear(sinr_min_db))
 
-        self.total_power_fractions = [0.40, 0.55, 0.70, 0.85, 1.0]
-        self.power_modes = ["equal", "channel_proportional", "inverse_channel", "sinr_deficit"]
-        self.phase_modes = [
-            "all_zero",
-            "fixed_random_1",
-            "fixed_random_2",
-            "align_weakest_user",
-            "align_weighted_sum",
+        self.total_power_fractions = [0.3, 0.45, 0.6, 0.75, 0.85, 1.0]
+        self.power_modes = [
+            "equal",
+            "channel_proportional",
+            "inverse_channel",
+            "sinr_deficit",
+            "waterfilling",
         ]
 
-        self._fixed_phase_1 = self._random_quantized_phase()
-        self._fixed_phase_2 = self._random_quantized_phase()
-
-        self.actions: list[tuple[int, int, int]] = list(
-            product(range(len(self.total_power_fractions)), range(len(self.power_modes)), range(len(self.phase_modes)))
-        )
+        self.actions: list[tuple[int, int]] = [
+            (f, m)
+            for f in range(len(self.total_power_fractions))
+            for m in range(len(self.power_modes))
+        ]
 
     @property
     def size(self) -> int:
         return len(self.actions)
-
-    def _random_quantized_phase(self, levels: int = 8) -> np.ndarray:
-        if self.m_ris_elements <= 0:
-            return np.zeros(0, dtype=float)
-        bins = self.rng.integers(0, levels, size=self.m_ris_elements)
-        return 2.0 * np.pi * bins / levels
-
-    def _direct_mrt_beamformers(self, snapshot: ChannelSnapshot) -> np.ndarray:
-        w = np.zeros((self.k_users, snapshot.g_bu.shape[1]), dtype=np.complex128)
-        for k in range(self.k_users):
-            w[k] = normalize(snapshot.g_bu[k])
-        return w
 
     def _decode_powers(self, fraction_idx: int, mode_idx: int, ctx: ActionContext) -> np.ndarray:
         total = self.total_power_fractions[fraction_idx] * ctx.pmax_watt
@@ -67,43 +155,31 @@ class JointActionSpace:
             weights = project_to_simplex(ctx.channel_quality_linear)
         elif mode == "inverse_channel":
             weights = project_to_simplex(1.0 / np.maximum(ctx.channel_quality_linear, 1e-12))
+        elif mode == "waterfilling":
+            cq = np.maximum(ctx.channel_quality_linear, 1e-12)
+            wf = np.log1p(cq)
+            weights = project_to_simplex(wf)
         else:
-            deficit = np.maximum(ctx.sinr_min_db - linear_to_db(np.maximum(ctx.prev_sinr_linear, 1e-12)), 0.0)
+            deficit = np.maximum(
+                ctx.sinr_min_db - linear_to_db(np.maximum(ctx.prev_sinr_linear, 1e-12)),
+                0.0,
+            )
             weights = project_to_simplex(deficit + 1e-3)
 
         return total * weights
 
-    def _decode_phases(self, phase_idx: int, p_bs_watt: np.ndarray, ctx: ActionContext) -> np.ndarray:
-        if self.m_ris_elements <= 0:
-            return np.zeros(0, dtype=float)
-
-        mode = self.phase_modes[phase_idx]
-        if mode == "all_zero":
-            return np.zeros(self.m_ris_elements, dtype=float)
-        if mode == "fixed_random_1":
-            return self._fixed_phase_1.copy()
-        if mode == "fixed_random_2":
-            return self._fixed_phase_2.copy()
-
-        w = self._direct_mrt_beamformers(ctx.snapshot)
-
-        if mode == "align_weakest_user":
-            weakest = int(np.argmin(ctx.prev_sinr_linear))
-            coeff = np.conj(ctx.snapshot.g_ru[weakest]) * (ctx.snapshot.G @ w[weakest])
-            theta = -np.angle(coeff + 1e-12)
-            return np.mod(theta, 2.0 * np.pi)
-
-        weighted_coeff = np.zeros(self.m_ris_elements, dtype=np.complex128)
-        weights = project_to_simplex(np.maximum(p_bs_watt, 1e-12))
-        for k in range(self.k_users):
-            weighted_coeff += weights[k] * np.conj(ctx.snapshot.g_ru[k]) * (ctx.snapshot.G @ w[k])
-        theta = -np.angle(weighted_coeff + 1e-12)
-        return np.mod(theta, 2.0 * np.pi)
-
     def decode(self, action_idx: int, ctx: ActionContext) -> tuple[np.ndarray, np.ndarray]:
-        frac_idx, mode_idx, phase_idx = self.actions[action_idx]
+        frac_idx, mode_idx = self.actions[action_idx]
         p_bs = self._decode_powers(frac_idx, mode_idx, ctx)
-        theta = self._decode_phases(phase_idx, p_bs, ctx)
+
+        theta = optimize_irs_phases(
+            snapshot=ctx.snapshot,
+            p_bs_watt=p_bs,
+            m_ris_elements=self.m_ris_elements,
+            n_ao_iters=self.n_ao_iters,
+            noise_watt=ctx.noise_watt,
+            sinr_min_linear=self.sinr_min_linear,
+        )
         return p_bs, theta
 
     def power_candidates_only(self, ctx: ActionContext) -> list[np.ndarray]:

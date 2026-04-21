@@ -4,7 +4,7 @@ from dataclasses import dataclass
 
 import numpy as np
 
-from .action_space import ActionContext, JointActionSpace
+from .action_space import ActionContext, HybridActionSpace
 from .channel_model import ChannelModel, ChannelSnapshot, Topology
 from .config import RLConfig, SystemConfig
 from .jammer import SmartJammer
@@ -36,10 +36,11 @@ class IRSAntiJammingEnv:
         self.topology = Topology(sys_cfg, self.rng)
         self.channel_model = ChannelModel(sys_cfg, self.rng)
         self.jammer = SmartJammer(sys_cfg, self.rng)
-        self.action_space = JointActionSpace(
+        self.action_space = HybridActionSpace(
             k_users=sys_cfg.k_users,
             m_ris_elements=sys_cfg.m_ris_elements,
             seed=int(self.rng.integers(0, 2**31 - 1)),
+            sinr_min_db=sys_cfg.sinr_min_db,
         )
 
         self.noise_watt = float(dbm_to_watt(sys_cfg.noise_dbm))
@@ -53,7 +54,7 @@ class IRSAntiJammingEnv:
         self.current_slot: SlotSample | None = None
 
         self._action_history: list[int] = []
-        self._action_history_window = 20
+        self._action_history_window = 25
 
     def _record_action(self, action_signature: int) -> None:
         self._action_history.append(int(action_signature))
@@ -69,11 +70,23 @@ class IRSAntiJammingEnv:
         dominant_ratio = float(np.max(counts)) / float(len(history))
 
         repeats = float(np.mean(history[1:] == history[:-1]))
+
+        # If only one unique action, the agent is maximally predictable.
+        if len(unique) <= 1:
+            return 1.0
+
         chance = 1.0 / max(1, len(unique))
         dominant_norm = (dominant_ratio - chance) / max(1e-12, 1.0 - chance)
         dominant_norm = float(np.clip(dominant_norm, 0.0, 1.0))
 
-        return float(np.clip(0.5 * repeats + 0.5 * dominant_norm, 0.0, 1.0))
+        # Entropy-based component: low entropy ↔ concentrated action distribution
+        n_total = 42  # action space size
+        probs = counts / float(len(history))
+        entropy = -float(np.sum(probs * np.log2(np.clip(probs, 1e-12, 1.0))))
+        max_entropy = np.log2(n_total)
+        entropy_norm = 1.0 - min(1.0, entropy / max_entropy)
+
+        return float(np.clip(0.25 * repeats + 0.35 * dominant_norm + 0.4 * entropy_norm, 0.0, 1.0))
 
     def _sample_slot(self) -> SlotSample:
         self.topology.move_jammer()
@@ -116,6 +129,7 @@ class IRSAntiJammingEnv:
             sinr_min_db=self.sys_cfg.sinr_min_db,
             prev_sinr_linear=self.prev_sinr_linear,
             channel_quality_linear=self.current_slot.channel_quality_linear,
+            noise_watt=self.noise_watt,
         )
 
     def action_context(self) -> ActionContext:
@@ -135,6 +149,7 @@ class IRSAntiJammingEnv:
             sinr_min_db=self.sys_cfg.sinr_min_db,
             lambda1=self.rl_cfg.lambda1,
             lambda2=self.rl_cfg.lambda2,
+            pmax_watt=float(dbm_to_watt(self.sys_cfg.pmax_dbm)),
             use_irs=use_irs,
         )
         return metrics, p_bs_watt, theta
@@ -164,6 +179,7 @@ class IRSAntiJammingEnv:
             sinr_min_db=self.sys_cfg.sinr_min_db,
             lambda1=self.rl_cfg.lambda1,
             lambda2=self.rl_cfg.lambda2,
+            pmax_watt=float(dbm_to_watt(self.sys_cfg.pmax_dbm)),
             use_irs=use_irs,
         )
         return metrics, p_bs_watt, theta
@@ -193,6 +209,7 @@ class IRSAntiJammingEnv:
             sinr_min_db=self.sys_cfg.sinr_min_db,
             lambda1=self.rl_cfg.lambda1,
             lambda2=self.rl_cfg.lambda2,
+            pmax_watt=float(dbm_to_watt(self.sys_cfg.pmax_dbm)),
             use_irs=use_irs,
         )
         return metrics, p_bs_watt, theta
@@ -210,6 +227,7 @@ class IRSAntiJammingEnv:
             sinr_min_db=self.sys_cfg.sinr_min_db,
             lambda1=self.rl_cfg.lambda1,
             lambda2=self.rl_cfg.lambda2,
+            pmax_watt=float(dbm_to_watt(self.sys_cfg.pmax_dbm)),
             use_irs=False,
         )
 

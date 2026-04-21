@@ -21,6 +21,12 @@ class SystemConfig:
     beta_ru: float = 2.2
     beta_ju: float = 2.5
 
+    enable_geometry_los: bool = True
+    carrier_wavelength_m: float = 0.1
+    rician_k_br_db: float = 8.0
+    rician_k_bu_db: float = 3.0
+    rician_k_ru_db: float = 6.0
+
     p_jammer_min_dbm: float = 15.0
     p_jammer_max_dbm: float = 40.0
 
@@ -34,18 +40,20 @@ class SystemConfig:
 
 @dataclass(slots=True)
 class RLConfig:
-    alpha: float = 0.008
+    alpha: float = 0.01   # Slightly higher for 30-action space (paper: 0.5e-2)
     gamma: float = 0.9
 
     epsilon_start: float = 1.0
-    epsilon_end: float = 0.1
+    epsilon_end: float = 0.05
     epsilon_decay: float = 0.995
 
-    lambda1: float = 1.0
-    lambda2: float = 2.0
+    lambda1: float = 0.5  # Paper Eq.7 — power penalty (lower: less penalty for using power)
+    lambda2: float = 3.0  # Paper Eq.7 — QoS penalty (higher: strongly penalize outage)
 
-    xi_win: float = 0.01
-    xi_loss: float = 0.04
+    xi_win: float = 0.01  # Paper [46],[47]
+    xi_loss: float = 0.04  # Paper [46],[47]
+
+    wolf_eval_temperature: float = 15.0  # Boltzmann temperature for WoLF-PHC eval softmax
 
     state_bins: int = 8
     fuzzy_centers: tuple[float, float, float] = (0.0, 0.5, 1.0)
@@ -54,9 +62,9 @@ class RLConfig:
 @dataclass(slots=True)
 class TrainEvalConfig:
     train_episodes: int = 1200
-    train_steps_per_episode: int = 30
+    train_steps_per_episode: int = 50
     eval_episodes: int = 50
-    eval_steps_per_episode: int = 10
+    eval_steps_per_episode: int = 20
     n_seeds: int = 3
 
 

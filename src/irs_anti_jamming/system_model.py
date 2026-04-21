@@ -36,6 +36,49 @@ def compute_mrt_beamformers(h_eff: np.ndarray) -> np.ndarray:
     return w
 
 
+def compute_maxsinr_beamformers(
+    h_eff: np.ndarray,
+    p_bs_watt: np.ndarray,
+    noise_watt: float,
+    h_ju: np.ndarray | None = None,
+    p_jammer_watt: np.ndarray | None = None,
+    z_jammer: np.ndarray | None = None,
+) -> np.ndarray:
+    """Max-SINR (MVDR) beamforming per paper reference [17].
+
+    For each user k, the beamformer maximizes SINR_k by:
+      w_k = R_k^{-1} h_k / ||R_k^{-1} h_k||
+    where R_k = sum_{i!=k} P_i h_eff_k h_eff_k^H  +  jammer_cov  +  noise*I
+    is the interference-plus-noise covariance at user k's receiver.
+
+    Since the BS transmits to ALL users, R_k represents
+    the interference seen at the BS when user k is the desired user.
+    w_k steers the beam toward h_eff_k while nulling toward interferers.
+    """
+    k_users, n_antennas = h_eff.shape
+    w = np.zeros_like(h_eff, dtype=np.complex128)
+
+    for k in range(k_users):
+        # Interference covariance (from other users' effective channels)
+        R_k = noise_watt * np.eye(n_antennas, dtype=np.complex128)
+        for i in range(k_users):
+            if i == k:
+                continue
+            hi = np.conj(h_eff[i])  # conjugate since h_eff contains g^*
+            R_k += p_bs_watt[i] * np.outer(hi, hi.conj())
+
+        # Solve for optimal beamformer
+        hk = np.conj(h_eff[k])
+        try:
+            R_inv_h = np.linalg.solve(R_k, hk)
+        except np.linalg.LinAlgError:
+            R_inv_h = np.linalg.lstsq(R_k, hk, rcond=None)[0]
+
+        w[k] = normalize(R_inv_h)
+
+    return w
+
+
 def evaluate_system(
     snapshot: ChannelSnapshot,
     p_bs_watt: np.ndarray,
@@ -46,11 +89,12 @@ def evaluate_system(
     sinr_min_db: float,
     lambda1: float,
     lambda2: float,
+    pmax_watt: float = 1.0,
     use_irs: bool = True,
 ) -> SystemMetrics:
     phi = build_phi_vector(theta)
     h_eff = effective_channels(snapshot, phi, use_irs=use_irs)
-    beamformers = compute_mrt_beamformers(h_eff)
+    beamformers = compute_maxsinr_beamformers(h_eff, p_bs_watt, noise_watt)
 
     k_users = h_eff.shape[0]
     sinr = np.zeros(k_users, dtype=float)
@@ -73,7 +117,12 @@ def evaluate_system(
     sinr_out = (sinr < sinr_min_linear).astype(float)
     protection = float(100.0 * np.mean(1.0 - sinr_out))
 
-    reward = system_rate - lambda1 * float(np.sum(p_bs_watt)) - lambda2 * float(np.sum(sinr_out))
+    qos_violations = float(np.sum(sinr_out))
+    # Power penalty per paper Eq. 7: lambda1 * sum(P_k)
+    # Normalize by Pmax so penalty is in [0, K] range (comparable to rate)
+    power_fraction = float(np.sum(p_bs_watt)) / max(pmax_watt, 1e-12)
+    reward = system_rate - lambda1 * power_fraction - lambda2 * qos_violations
+
     return SystemMetrics(
         sinr_linear=sinr,
         rates=rates,
