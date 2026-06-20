@@ -9,5 +9,5 @@ if not os.path.exists(venv_python):
     os.symlink(target, venv_python)
     print(f"Created {venv_python} -> {target}")
 
-# Now exec the reproduce script using the venv python
-os.execv(venv_python, [venv_python, "scripts/run_paper_trends.py", "--profile", "reproduce", "--output", "outputs_reproduce_v3"])
+# Now exec the full reproduction using the venv python
+os.execv(venv_python, [venv_python, "run_all.py"])

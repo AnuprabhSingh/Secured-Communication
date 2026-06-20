@@ -1,6 +1,6 @@
 #!/bin/sh
-cd "/Users/anuprabh/Desktop/Secured Comm"
-PYTHON=/opt/homebrew/opt/python@3.14/bin/python3.14
+cd "$(dirname "$0")"
+PYTHON=${PYTHON:-/opt/homebrew/opt/python@3.14/bin/python3.14}
 
 # Create symlink if needed
 if [ ! -L .venv/bin/python ]; then
@@ -10,8 +10,10 @@ if [ ! -L .venv/bin/python ]; then
 fi
 
 echo "Python: $($PYTHON --version)"
-echo "Starting reproduce profile..."
-PYTHONPATH=src $PYTHON scripts/run_paper_trends.py --profile reproduce --output outputs_reproduce_v3
-echo "Running validation..."
-PYTHONPATH=src $PYTHON scripts/check_scientific_reproduction.py --results outputs_reproduce_v3/results.json
-echo "Done."
+echo "Starting full paper reproduction..."
+PYTHONPATH=src $PYTHON scripts/run_joint_ao_results.py
+
+echo "Generating IEEE plots..."
+PYTHONPATH=src $PYTHON scripts/generate_joint_ao_plots.py
+
+echo "✓ Reproduction complete! Results in outputs_joint_ao/"
