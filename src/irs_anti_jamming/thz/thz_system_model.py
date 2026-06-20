@@ -17,6 +17,7 @@ from .hybrid_beamforming import (
     design_analog_precoder,
     analog_precoder_at_freq,
     compute_digital_precoder,
+    refine_analog_precoder_ao,
 )
 from ..utils import db_to_linear
 
@@ -70,14 +71,22 @@ def compute_hybrid_precoders(
     p_bs_watt: np.ndarray,
     noise_watt: float,
     subcarrier_indices: np.ndarray | None = None,
+    ao_refine: bool = True,
 ) -> np.ndarray:
     """Compute hybrid precoders W_m = F_RF(f_m) @ F_BB[m] for all (or selected) subcarriers.
+
+    When ao_refine=True (default), performs one AO refinement pass: the
+    analog precoder F_RF is updated via the dominant left singular vector of
+    each sub-array's portion of the aggregated effective channel, making it
+    jointly optimized with the current IRS (SPDP) configuration.  This
+    implements the hybrid beamforming block of the 3-block AO framework.
 
     Args:
         cfg: system config
         snapshot: channel snapshot
         spdp: SPDP RIS configuration
         p_bs_watt: (K,) per-user power
+        ao_refine: if True, refine F_RF from channel aggregate after initial design
         noise_watt: noise power
         subcarrier_indices: optional subset of subcarrier indices to evaluate
 
@@ -91,8 +100,21 @@ def compute_hybrid_precoders(
     N_t = cfg.n_bs_antennas
     K = cfg.k_users
 
-    # Design analog precoder (frequency-flat base + TD)
+    # --- Block 3 of 3-block AO: Hybrid beamforming optimization ---
+    # Initialize F_RF from geometry (BS-to-RIS steering direction)
     W_u, td_bs = design_analog_precoder(cfg, snapshot.phi_bs)
+
+    # AO refinement: update F_RF to align with the effective channel under
+    # the current IRS (SPDP) configuration.  Aggregate H_eff^H across a
+    # subset of subcarriers, then extract the dominant left singular vector
+    # for each sub-array to get the channel-adaptive analog precoder.
+    if ao_refine and M_eval > 0:
+        agg_stride = max(1, M_eval // 8)
+        H_agg = np.zeros((N_t, K), dtype=np.complex128)
+        for m in subcarrier_indices[::agg_stride]:
+            H_eff_m = effective_channel_subcarrier(snapshot, spdp, m)  # (K, N_t)
+            H_agg += H_eff_m.conj().T  # accumulate H_eff^H: (N_t, K)
+        W_u, td_bs = refine_analog_precoder_ao(cfg, H_agg, td_bs)
 
     W = np.zeros((M_eval, N_t, K), dtype=np.complex128)
 

@@ -1,0 +1,289 @@
+[18:04:39] ============================================================
+[18:04:39]  Full paper re-run  — 5 seeds × 600 episodes
+[18:04:39]  Log file: /Users/anuprabh/Desktop/NITW/Secured Comm/outputs_joint_ao/training_log.txt
+[18:04:39]  Estimated total time: 47 min
+[18:04:39] ============================================================
+
+[18:04:39]  Config:
+[18:04:39]    Seeds              : [0, 1, 2, 3, 4]
+[18:04:39]    Train episodes     : 600
+[18:04:39]    Steps/episode      : 20
+[18:04:39]    Eval episodes      : 30
+[18:04:39]    BS antennas (N)    : 64
+[18:04:39]    RIS elements (M)   : 256
+[18:04:39]    Subcarriers (Msc)  : 64
+[18:04:39]    Users (K)          : 4
+
+
+[18:04:39] ========================================================
+[18:04:39]  Seed 0  (1/5)
+[18:04:39]  Elapsed: 0.0 min  |  ETA: --:--
+[18:04:39] ========================================================
+[18:04:39]  AO baseline ...  16.6s  rate=9.161  prot=55.6%
+
+[18:04:55]  [q_learning]  training ...
+    ep 100/600: avg_reward=11.64
+    ep 200/600: avg_reward=10.32
+    ep 300/600: avg_reward=10.18
+    ep 400/600: avg_reward=9.70
+    ep 500/600: avg_reward=10.45
+    ep 600/600: avg_reward=10.66
+[18:06:34]  [q_learning]  training done  99.2s  final-50-ep-reward=10.573
+[18:06:34]  [q_learning]  evaluating ...  15.3s  rate=6.342  prot=28.8%  (total 114.5s)
+[18:06:50]  Progress: 1/20 tasks  |  Elapsed: 2.2 min  |  ETA: 41m 30s
+
+[18:06:50]  [fast_q_learning]  training ...
+    ep 100/600: avg_reward=11.28
+    ep 200/600: avg_reward=9.93
+    ep 300/600: avg_reward=9.56
+    ep 400/600: avg_reward=9.40
+    ep 500/600: avg_reward=10.18
+    ep 600/600: avg_reward=10.23
+[18:08:24]  [fast_q_learning]  training done  94.4s  final-50-ep-reward=10.012
+[18:08:24]  [fast_q_learning]  evaluating ...  15.6s  rate=7.293  prot=36.4%  (total 110.1s)
+[18:08:40]  Progress: 2/20 tasks  |  Elapsed: 4.0 min  |  ETA: 36m 10s
+
+[18:08:40]  [fuzzy_wolf_phc]  training ...
+    ep 100/600: avg_reward=11.83
+    ep 200/600: avg_reward=10.94
+    ep 300/600: avg_reward=10.66
+    ep 400/600: avg_reward=10.66
+    ep 500/600: avg_reward=11.01
+    ep 600/600: avg_reward=11.02
+[18:10:21]  [fuzzy_wolf_phc]  training done  101.3s  final-50-ep-reward=10.866
+[18:10:21]  [fuzzy_wolf_phc]  evaluating ...  15.8s  rate=11.083  prot=75.4%  (total 117.1s)
+[18:10:37]  Progress: 3/20 tasks  |  Elapsed: 6.0 min  |  ETA: 33m 50s
+
+[18:10:37]  [dqn]  training ...
+    ep 100/600: avg_reward=10.12
+    ep 200/600: avg_reward=9.18
+    ep 300/600: avg_reward=7.73
+    ep 400/600: avg_reward=8.27
+    ep 500/600: avg_reward=8.65
+    ep 600/600: avg_reward=9.40
+[18:13:09]  [dqn]  training done  152.2s  final-50-ep-reward=8.530
+[18:13:09]  [dqn]  evaluating ...  16.6s  rate=6.189  prot=27.0%  (total 168.8s)
+[18:13:26]  Progress: 4/20 tasks  |  Elapsed: 8.8 min  |  ETA: 35m 08s
+
+[18:13:26]  Checkpoint saved after seed 0.
+
+[18:13:26] ========================================================
+[18:13:26]  Seed 1  (2/5)
+[18:13:26]  Elapsed: 8.8 min  |  ETA: 35m 08s
+[18:13:26] ========================================================
+[18:13:26]  AO baseline ...  16.6s  rate=7.328  prot=37.0%
+
+[18:13:42]  [q_learning]  training ...
+    ep 100/600: avg_reward=9.07
+    ep 200/600: avg_reward=7.44
+    ep 300/600: avg_reward=7.09
+    ep 400/600: avg_reward=7.62
+    ep 500/600: avg_reward=7.84
+    ep 600/600: avg_reward=8.39
+[18:15:18]  [q_learning]  training done  96.1s  final-50-ep-reward=8.592
+[18:15:18]  [q_learning]  evaluating ...  15.4s  rate=7.807  prot=44.4%  (total 111.5s)
+[18:15:34]  Progress: 5/20 tasks  |  Elapsed: 10.9 min  |  ETA: 32m 45s
+
+[18:15:34]  [fast_q_learning]  training ...
+    ep 100/600: avg_reward=9.61
+    ep 200/600: avg_reward=8.63
+    ep 300/600: avg_reward=8.81
+    ep 400/600: avg_reward=8.72
+    ep 500/600: avg_reward=8.99
+    ep 600/600: avg_reward=9.45
+[18:17:10]  [fast_q_learning]  training done  96.1s  final-50-ep-reward=9.886
+[18:17:10]  [fast_q_learning]  evaluating ...  15.5s  rate=6.631  prot=32.1%  (total 111.6s)
+[18:17:25]  Progress: 6/20 tasks  |  Elapsed: 12.8 min  |  ETA: 29m 49s
+
+[18:17:25]  [fuzzy_wolf_phc]  training ...
+    ep 100/600: avg_reward=9.36
+    ep 200/600: avg_reward=8.12
+    ep 300/600: avg_reward=7.89
+    ep 400/600: avg_reward=7.98
+    ep 500/600: avg_reward=8.22
+    ep 600/600: avg_reward=8.72
+[18:19:03]  [fuzzy_wolf_phc]  training done  97.3s  final-50-ep-reward=9.104
+[18:19:03]  [fuzzy_wolf_phc]  evaluating ...  15.4s  rate=11.374  prot=78.9%  (total 112.8s)
+[18:19:18]  Progress: 7/20 tasks  |  Elapsed: 14.7 min  |  ETA: 27m 13s
+
+[18:19:18]  [dqn]  training ...
+    ep 100/600: avg_reward=10.27
+    ep 200/600: avg_reward=8.79
+    ep 300/600: avg_reward=8.22
+    ep 400/600: avg_reward=8.86
+    ep 500/600: avg_reward=8.52
+    ep 600/600: avg_reward=9.36
+[18:21:50]  [dqn]  training done  151.4s  final-50-ep-reward=9.647
+[18:21:50]  [dqn]  evaluating ...  15.8s  rate=5.115  prot=16.9%  (total 167.2s)
+[18:22:05]  Progress: 8/20 tasks  |  Elapsed: 17.4 min  |  ETA: 26m 10s
+
+[18:22:05]  Checkpoint saved after seed 1.
+
+[18:22:05] ========================================================
+[18:22:05]  Seed 2  (3/5)
+[18:22:05]  Elapsed: 17.4 min  |  ETA: 26m 10s
+[18:22:05] ========================================================
+[18:22:05]  AO baseline ...  15.6s  rate=7.352  prot=39.3%
+
+[18:22:21]  [q_learning]  training ...
+    ep 100/600: avg_reward=10.65
+    ep 200/600: avg_reward=10.00
+    ep 300/600: avg_reward=10.04
+    ep 400/600: avg_reward=10.30
+    ep 500/600: avg_reward=9.89
+    ep 600/600: avg_reward=10.13
+[18:23:56]  [q_learning]  training done  94.6s  final-50-ep-reward=10.077
+[18:23:56]  [q_learning]  evaluating ...  15.6s  rate=9.833  prot=67.2%  (total 110.2s)
+[18:24:11]  Progress: 9/20 tasks  |  Elapsed: 19.5 min  |  ETA: 23m 53s
+
+[18:24:11]  [fast_q_learning]  training ...
+    ep 100/600: avg_reward=10.63
+    ep 200/600: avg_reward=10.32
+    ep 300/600: avg_reward=10.45
+    ep 400/600: avg_reward=10.84
+    ep 500/600: avg_reward=10.10
+    ep 600/600: avg_reward=10.60
+[18:25:46]  [fast_q_learning]  training done  95.0s  final-50-ep-reward=10.471
+[18:25:46]  [fast_q_learning]  evaluating ...  16.0s  rate=10.489  prot=73.9%  (total 111.0s)
+[18:26:02]  Progress: 10/20 tasks  |  Elapsed: 21.4 min  |  ETA: 21m 23s
+
+[18:26:02]  [fuzzy_wolf_phc]  training ...
+    ep 100/600: avg_reward=10.44
+    ep 200/600: avg_reward=9.27
+    ep 300/600: avg_reward=9.28
+    ep 400/600: avg_reward=9.65
+    ep 500/600: avg_reward=8.81
+    ep 600/600: avg_reward=9.43
+[18:27:40]  [fuzzy_wolf_phc]  training done  97.4s  final-50-ep-reward=9.203
+[18:27:40]  [fuzzy_wolf_phc]  evaluating ...  16.1s  rate=12.328  prot=84.6%  (total 113.6s)
+[18:27:56]  Progress: 11/20 tasks  |  Elapsed: 23.3 min  |  ETA: 19m 03s
+
+[18:27:56]  [dqn]  training ...
+    ep 100/600: avg_reward=11.13
+    ep 200/600: avg_reward=10.05
+    ep 300/600: avg_reward=9.20
+    ep 400/600: avg_reward=7.59
+    ep 500/600: avg_reward=9.34
+    ep 600/600: avg_reward=9.54
+[18:30:27]  [dqn]  training done  150.6s  final-50-ep-reward=10.062
+[18:30:27]  [dqn]  evaluating ...  16.2s  rate=11.444  prot=83.0%  (total 166.9s)
+[18:30:43]  Progress: 12/20 tasks  |  Elapsed: 26.1 min  |  ETA: 17m 22s
+
+[18:30:43]  Checkpoint saved after seed 2.
+
+[18:30:43] ========================================================
+[18:30:43]  Seed 3  (4/5)
+[18:30:43]  Elapsed: 26.1 min  |  ETA: 17m 22s
+[18:30:43] ========================================================
+[18:30:43]  AO baseline ...  16.1s  rate=8.435  prot=48.7%
+
+[18:30:59]  [q_learning]  training ...
+    ep 100/600: avg_reward=9.99
+    ep 200/600: avg_reward=8.52
+    ep 300/600: avg_reward=8.78
+    ep 400/600: avg_reward=8.85
+    ep 500/600: avg_reward=8.93
+    ep 600/600: avg_reward=8.90
+[18:32:33]  [q_learning]  training done  94.2s  final-50-ep-reward=9.004
+[18:32:33]  [q_learning]  evaluating ...  15.5s  rate=7.760  prot=40.9%  (total 109.7s)
+[18:32:49]  Progress: 13/20 tasks  |  Elapsed: 28.2 min  |  ETA: 15m 09s
+
+[18:32:49]  [fast_q_learning]  training ...
+    ep 100/600: avg_reward=9.85
+    ep 200/600: avg_reward=8.91
+    ep 300/600: avg_reward=9.48
+    ep 400/600: avg_reward=9.69
+    ep 500/600: avg_reward=9.73
+    ep 600/600: avg_reward=9.86
+[18:34:24]  [fast_q_learning]  training done  95.3s  final-50-ep-reward=9.895
+[18:34:24]  [fast_q_learning]  evaluating ...  15.7s  rate=9.562  prot=60.9%  (total 111.0s)
+[18:34:40]  Progress: 14/20 tasks  |  Elapsed: 30.0 min  |  ETA: 12m 51s
+
+[18:34:40]  [fuzzy_wolf_phc]  training ...
+    ep 100/600: avg_reward=11.29
+    ep 200/600: avg_reward=10.14
+    ep 300/600: avg_reward=10.72
+    ep 400/600: avg_reward=10.98
+    ep 500/600: avg_reward=11.18
+    ep 600/600: avg_reward=11.29
+[18:36:17]  [fuzzy_wolf_phc]  training done  97.2s  final-50-ep-reward=11.413
+[18:36:17]  [fuzzy_wolf_phc]  evaluating ...  16.1s  rate=12.005  prot=83.0%  (total 113.4s)
+[18:36:33]  Progress: 15/20 tasks  |  Elapsed: 31.9 min  |  ETA: 10m 38s
+
+[18:36:33]  [dqn]  training ...
+    ep 100/600: avg_reward=10.09
+    ep 200/600: avg_reward=9.17
+    ep 300/600: avg_reward=9.11
+    ep 400/600: avg_reward=8.66
+    ep 500/600: avg_reward=8.41
+    ep 600/600: avg_reward=7.70
+[18:39:06]  [dqn]  training done  152.8s  final-50-ep-reward=8.022
+[18:39:06]  [dqn]  evaluating ...  16.4s  rate=8.047  prot=44.6%  (total 169.2s)
+[18:39:22]  Progress: 16/20 tasks  |  Elapsed: 34.7 min  |  ETA: 8m 40s
+
+[18:39:22]  Checkpoint saved after seed 3.
+
+[18:39:22] ========================================================
+[18:39:22]  Seed 4  (5/5)
+[18:39:22]  Elapsed: 34.7 min  |  ETA: 8m 40s
+[18:39:22] ========================================================
+[18:39:22]  AO baseline ...  15.9s  rate=7.149  prot=35.4%
+
+[18:39:38]  [q_learning]  training ...
+    ep 100/600: avg_reward=9.62
+    ep 200/600: avg_reward=8.86
+    ep 300/600: avg_reward=8.96
+    ep 400/600: avg_reward=8.17
+    ep 500/600: avg_reward=8.69
+    ep 600/600: avg_reward=8.26
+[18:41:14]  [q_learning]  training done  95.4s  final-50-ep-reward=8.287
+[18:41:14]  [q_learning]  evaluating ...  15.3s  rate=9.528  prot=63.8%  (total 110.8s)
+[18:41:29]  Progress: 17/20 tasks  |  Elapsed: 36.8 min  |  ETA: 6m 30s
+
+[18:41:29]  [fast_q_learning]  training ...
+    ep 100/600: avg_reward=9.49
+    ep 200/600: avg_reward=9.10
+    ep 300/600: avg_reward=9.25
+    ep 400/600: avg_reward=8.48
+    ep 500/600: avg_reward=9.02
+    ep 600/600: avg_reward=8.40
+[18:43:03]  [fast_q_learning]  training done  94.3s  final-50-ep-reward=8.538
+[18:43:03]  [fast_q_learning]  evaluating ...  15.4s  rate=6.253  prot=24.4%  (total 109.7s)
+[18:43:19]  Progress: 18/20 tasks  |  Elapsed: 38.7 min  |  ETA: 4m 17s
+
+[18:43:19]  [fuzzy_wolf_phc]  training ...
+    ep 100/600: avg_reward=8.89
+    ep 200/600: avg_reward=7.78
+    ep 300/600: avg_reward=7.86
+    ep 400/600: avg_reward=7.10
+    ep 500/600: avg_reward=7.66
+    ep 600/600: avg_reward=7.17
+[18:44:58]  [fuzzy_wolf_phc]  training done  99.0s  final-50-ep-reward=7.253
+[18:44:58]  [fuzzy_wolf_phc]  evaluating ...  16.1s  rate=12.534  prot=86.0%  (total 115.2s)
+[18:45:14]  Progress: 19/20 tasks  |  Elapsed: 40.6 min  |  ETA: 2m 08s
+
+[18:45:14]  [dqn]  training ...
+    ep 100/600: avg_reward=9.30
+    ep 200/600: avg_reward=8.39
+    ep 300/600: avg_reward=8.34
+    ep 400/600: avg_reward=8.84
+    ep 500/600: avg_reward=8.24
+    ep 600/600: avg_reward=8.38
+[18:47:47]  [dqn]  training done  152.9s  final-50-ep-reward=8.530
+[18:47:47]  [dqn]  evaluating ...  16.1s  rate=10.367  prot=73.9%  (total 169.0s)
+[18:48:03]  Progress: 20/20 tasks  |  Elapsed: 43.4 min  |  ETA: 0m 00s
+
+[18:48:03]  Checkpoint saved after seed 4.
+
+[18:48:03] ========================================================
+[18:48:03]  Training complete — 43.4 min total
+[18:48:03] ========================================================
+
+[18:48:03]  FINAL SUMMARY  (mean ± std over 5 seeds)
+[18:48:03]  Method                       Rate (bps/Hz)     SINR Protection
+[18:48:03]  ----------------------  ------------------  ------------------
+[18:48:03]  q_learning               8.254 ± 1.282        49.0 ± 14.4%
+[18:48:03]  fast_q_learning          8.046 ± 1.676        45.5 ± 18.7%
+[18:48:03]  fuzzy_wolf_phc          11.865 ± 0.554        81.6 ± 3.9%
+[18:48:03]  dqn                      8.232 ± 2.400        49.1 ± 25.7%
+[18:48:03]  ao_baseline              7.885 ± 0.783        43.2 ± 7.7%

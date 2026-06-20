@@ -97,33 +97,42 @@ class THzHybridActionSpace:
             return p_bs, ctx.ref_spdp
 
         # Multi-user SPDP: evaluate candidates and pick best
-        def rate_eval_fn(spdp_candidate):
-            metrics = evaluate_thz_system(
-                cfg=self.cfg,
-                snapshot=ctx.snapshot,
-                spdp=spdp_candidate,
-                p_bs_watt=p_bs,
-                p_jammer_watt=np.zeros(self.k_users),
-                z_jammer=np.zeros((self.k_users, self.cfg.n_jammer_antennas)),
-                noise_watt=ctx.noise_watt,
-                sinr_min_db=ctx.sinr_min_db,
-                lambda1=0.0, lambda2=0.0,
-                pmax_watt=ctx.pmax_watt,
-                subcarrier_stride=max(1, self.cfg.n_subcarriers // 16),
-            )
-            return metrics.system_rate
+        # 3-block AO outer loop: alternate SPDP (Block 2) and F_RF (Block 3).
+        # Block 1 (power {P_k}) is fixed by the RL action above.
+        # Each call to evaluate_thz_system internally refines F_RF (ao_refine=True),
+        # so iterating SPDP selection naturally incorporates the updated analog
+        # precoder from the previous iteration.
+        n_outer_ao = 3  # number of AO outer iterations
+        spdp = ctx.ref_spdp  # initialise with centroid SPDP
 
-        spdp = optimize_spdp_multiuser(
-            cfg=self.cfg,
-            theta_aoa=ctx.snapshot.theta_aoa,
-            zeta_aoa=ctx.snapshot.zeta_aoa,
-            theta_aod_arr=ctx.snapshot.theta_aod,
-            zeta_aod_arr=ctx.snapshot.zeta_aod,
-            rate_eval_fn=rate_eval_fn,
-            p_bs_watt=p_bs,
-            noise_watt=ctx.noise_watt,
-            snapshot=ctx.snapshot,
-        )
+        for _ in range(n_outer_ao):
+            def rate_eval_fn(spdp_candidate):
+                metrics = evaluate_thz_system(
+                    cfg=self.cfg,
+                    snapshot=ctx.snapshot,
+                    spdp=spdp_candidate,
+                    p_bs_watt=p_bs,
+                    p_jammer_watt=np.zeros(self.k_users),
+                    z_jammer=np.zeros((self.k_users, self.cfg.n_jammer_antennas)),
+                    noise_watt=ctx.noise_watt,
+                    sinr_min_db=ctx.sinr_min_db,
+                    lambda1=0.0, lambda2=0.0,
+                    pmax_watt=ctx.pmax_watt,
+                    subcarrier_stride=max(1, self.cfg.n_subcarriers // 16),
+                )
+                return metrics.system_rate
+
+            spdp = optimize_spdp_multiuser(
+                cfg=self.cfg,
+                theta_aoa=ctx.snapshot.theta_aoa,
+                zeta_aoa=ctx.snapshot.zeta_aoa,
+                theta_aod_arr=ctx.snapshot.theta_aod,
+                zeta_aod_arr=ctx.snapshot.zeta_aod,
+                rate_eval_fn=rate_eval_fn,
+                p_bs_watt=p_bs,
+                noise_watt=ctx.noise_watt,
+                snapshot=ctx.snapshot,
+            )
 
         return p_bs, spdp
 

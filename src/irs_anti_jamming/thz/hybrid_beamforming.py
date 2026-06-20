@@ -131,3 +131,60 @@ def compute_digital_precoder(
         F_BB[:, k] = normalize(R_inv_h)
 
     return F_BB
+
+
+def refine_analog_precoder_ao(
+    cfg: THzSystemConfig,
+    H_eff_agg: np.ndarray,
+    td_bs_init: np.ndarray,
+) -> tuple[np.ndarray, np.ndarray]:
+    """Refine the analog precoder via per-sub-array dominant singular vector.
+
+    Given the aggregated effective channel H_eff_agg = sum_m H_eff^H[m]
+    (shape N_t x K), updates the analog precoder by extracting the dominant
+    left singular vector for each sub-array's antenna partition and applying
+    unit-modulus projection.  This is the closed-form solution to the
+    sub-connected hybrid beamforming sub-problem within the AO loop.
+
+    Args:
+        cfg: system configuration.
+        H_eff_agg: (N_t, K) aggregated conjugate-transpose effective channel,
+            i.e. sum_{m in S} H_eff^H[m].
+        td_bs_init: (N_RF,) current BS time-delay values (geometry-fixed,
+            returned unchanged).
+
+    Returns:
+        W_u: (N_t, N_RF) updated block-diagonal analog precoder (unit-modulus
+            non-zero entries, normalized columns).
+        td_bs: (N_RF,) TD delays (identical to td_bs_init).
+    """
+    N_t = cfg.n_bs_antennas
+    P = cfg.n_rf_chains
+    N_per = cfg.n_bs_per_subarray
+
+    W_u = np.zeros((N_t, P), dtype=np.complex128)
+    for p in range(P):
+        start = p * N_per
+        end = start + N_per
+        H_sub = H_eff_agg[start:end, :]  # (N_per, K)
+
+        if np.linalg.norm(H_sub) > 1e-12:
+            try:
+                U, _, _ = np.linalg.svd(H_sub, full_matrices=False)
+                w_p = U[:, 0]
+            except np.linalg.LinAlgError:
+                col = H_sub[:, 0]
+                w_p = col / (np.linalg.norm(col) + 1e-12)
+        else:
+            w_p = np.ones(N_per, dtype=np.complex128) / math.sqrt(N_per)
+
+        # Unit-modulus projection (phase-only constraint)
+        W_u[start:end, p] = np.exp(1j * np.angle(w_p))
+
+    # Normalize columns
+    for p in range(P):
+        col_norm = np.linalg.norm(W_u[:, p])
+        if col_norm > 1e-12:
+            W_u[:, p] /= col_norm
+
+    return W_u, td_bs_init
