@@ -55,14 +55,14 @@ The central insight is that **unpredictability is a security property**: a jamme
 
 | Method | System Rate (bits/s/Hz) | SINR Protection | Training Time |
 |--------|------------------------|-----------------|---------------|
-| **Proposed Fuzzy WoLF-PHC** | **11.46 ± 0.18** | **78.6% ± 1.9%** | 23.3s |
-| AO Baseline | 8.01 ± 0.53 | 44.8% ± 4.8% | 2.5s |
-| DQN | 7.68 ± 1.14 | 41.9% ± 11.4% | 11.6s |
-| Fast Q-Learning | 7.21 ± 1.97 | 39.2% ± 19.1% | 5.9s |
-| Classical Q-Learning | 7.13 ± 2.52 | 38.8% ± 20.9% | 5.9s |
+| **Proposed Fuzzy WoLF-PHC** | **11.87 ± 0.55** | **81.6% ± 3.9%** | ~98s |
+| AO Baseline | 7.89 ± 0.78 | 43.2% ± 7.7% | ~4s |
+| Classical Q-Learning | 8.25 ± 1.28 | 49.0% ± 14.4% | ~95s |
+| DQN | 8.23 ± 2.40 | 49.1% ± 25.7% | ~151s |
+| Fast Q-Learning | 8.05 ± 1.68 | 45.5% ± 18.7% | ~95s |
 | No IRS | 5.48 | 18.8% | — |
 
-WoLF-PHC achieves **43% higher rate** and **75% higher SINR protection** than the best baseline (AO), with **14× lower variance** across random seeds.
+WoLF-PHC achieves **50% higher rate** and **89% higher SINR protection** than the best baseline (AO), with **12× lower variance** across random seeds.
 
 ---
 
@@ -1051,12 +1051,12 @@ python run_all.py
 
 Runs the complete THz paper simulation pipeline including:
 - Beam squint analysis (SPDP vs Classical comparison)
-- Training all methods (Q-learning, Fast-Q, WoLF-PHC, DQN, AO Baseline) over 3 seeds
+- Training all methods (Q-learning, Fast-Q, WoLF-PHC, DQN, AO Baseline) over 5 seeds
 - Overall performance evaluation
 - Parameter sweeps (P_max, N_RIS, γ_min, P_J)
 - SINR CDF analysis
 - Per-seed consistency analysis
-- IEEE-format plot generation → `outputs_wolf_v2/ieee_plots/`
+- IEEE-format plot generation → `outputs_joint_ao/ieee_plots/`
 
 ### Individual Components
 
@@ -1132,14 +1132,17 @@ Secured Comm/
 │   ├── validate_physics.py         # Sanity checks on channel model
 │   └── check_scientific_reproduction.py  # Compare against paper reference numbers
 │
-├── outputs_wolf_v2/                # Primary results directory
+├── outputs_joint_ao/               # Primary results directory (final paper)
 │   ├── paper_results.json          # Full evaluation results (all methods, all metrics)
-│   ├── sweep_results.json          # Parameter sweep data
-│   └── ieee_plots/                 # Generated IEEE-format PDF/PNG figures
+│   ├── sweep_*.json                # Parameter sweep data (pmax, nris, sinr_target, pjammer, sinr_cdf)
+│   ├── ieee_plots/                 # Generated IEEE-format PDF/PNG figures (Figs 4-13)
+│   ├── training_log.txt            # Training convergence logs
+│   └── sweep_log.txt               # Sweep execution log
 │
 ├── outputs/                        # Base config results
-├── outputs_paper/                  # Paper reproduction results
-├── outputs_thz*/                   # THz-specific experiment outputs
+├── outputs_paper/                  # Figure assets and intermediate results
+├── outputs_wolf_v2/                # Alternative WoLF-PHC validation run
+├── outputs_thz*/                   # THz-specific baseline experiments
 │
 ├── paper_ieee.tex                  # LaTeX source of the paper
 ├── run_all.py                      # Master run script
