@@ -6,6 +6,24 @@
 
 ---
 
+## 🚀 Quick Start (Reproduce Results in 5 Minutes)
+
+**New to this project?** Start here:
+
+1. **[SETUP.md](SETUP.md)** — Step-by-step installation guide (macOS/Linux/Windows)
+2. **[RESULTS.md](RESULTS.md)** — How to interpret your results & plots
+3. **Run reproduction:**
+   ```bash
+   python3 -m venv .venv && source .venv/bin/activate
+   pip install -r requirements.txt
+   python run_all.py
+   ```
+   Or use `make run` if you have GNU Make installed.
+
+**Expected output:** ~50% higher rate & 89% higher protection than baseline, in `outputs_joint_ao/`
+
+---
+
 ## Table of Contents
 
 1. [Project Overview](#1-project-overview)
