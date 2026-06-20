@@ -1,0 +1,49 @@
+╔═══════════════════════════════════════════════════════════════════════════╗
+║                                                                           ║
+║       IRS Anti-Jamming THz Communications - Quick Reproduction           ║
+║                  For Professors & First-Time Users                       ║
+║                                                                           ║
+╚═══════════════════════════════════════════════════════════════════════════╝
+
+📋 STEP 1: ONE-TIME SETUP (5 MINUTES)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  $ git clone https://github.com/AnuprabhSingh/Secured-Communication.git
+  $ cd "Secured Communication"
+  $ python3 -m venv .venv
+  $ source .venv/bin/activate        # On Windows: .venv\Scripts\activate
+  $ pip install -r requirements.txt
+
+  ✓ Setup complete!
+
+
+📊 STEP 2: RUN REPRODUCTION (30-60 MINUTES)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  Option A (Simplest - Recommended):
+  $ python run_all.py
+
+  Option B (Using Make):
+  $ make run
+
+  Option C (Using Shell Script):
+  $ ./run_reproduce.sh
+
+  ⏱️  Expected time: 30-60 min (full 5 seeds × 5 methods)
+  ⏩ Want quick test? Use: python scripts/run_paper_fast.py (2-3 min)
+
+
+📈 STEP 3: VIEW YOUR RESULTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  Results saved to: outputs_joint_ao/
+
+  📊 View summary:
+  $ python3 << 'EOF'
+import json
+with open("outputs_joint_ao/paper_results.json") as f:
+    data = json.load(f)
+    for method, stats in data["summary"].items():
+        print(f"{method}:")
+        print(f"  Rate: {stats['rate_mean']:.2f} ± {stats['rate_std']:.2f}")
+        print(f"  Protection: {stats['protection_mean']:.1f}% ± {stats['protection_std']:.1f}%\n")
