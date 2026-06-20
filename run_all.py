@@ -22,21 +22,23 @@ if not os.path.exists(python_link):
 script_dir = os.path.dirname(__file__)
 scripts_dir = os.path.join(script_dir, "scripts")
 
-print("Running reproduce profile...")
+print("Running full paper reproduction (joint_ao)...")
 rc = subprocess.call([
     python_link,
-    os.path.join(scripts_dir, "run_paper_trends.py"),
-    "--profile", "reproduce",
-    "--output", "outputs_reproduce_v3"
+    os.path.join(scripts_dir, "run_joint_ao_results.py")
 ])
 if rc != 0:
-    print(f"Reproduction failed with exit code {rc}")
+    print(f"Paper reproduction failed with exit code {rc}")
     sys.exit(rc)
 
-print("\nRunning validation...")
+print("\nGenerating IEEE plots...")
 rc = subprocess.call([
     python_link,
-    os.path.join(scripts_dir, "check_scientific_reproduction.py"),
-    "--results", "outputs_reproduce_v3/results.json"
+    os.path.join(scripts_dir, "generate_joint_ao_plots.py")
 ])
-sys.exit(rc)
+if rc != 0:
+    print(f"Plot generation failed with exit code {rc}")
+    sys.exit(rc)
+
+print("\n✓ Reproduction complete! Results in outputs_joint_ao/")
+sys.exit(0)
